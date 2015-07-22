@@ -44,4 +44,36 @@ angular.module('starter.controllers', [])
   $scope.settings = {
     enableFriends: true
   };
+})
+
+.controller('CaptureCtrl', function($scope, $cordovaCapture) {
+
+  $scope.captureAudio = function() {
+    var options = { limit: 1, duration: 10 };
+
+    $cordovaCapture.captureAudio(options).then(function(audioData) {
+      // Success! Audio data is here
+    }, function(error) {
+      // An error occurred. Show a message to the user
+      switch (error) {
+        case CaptureError.CAPTURE_NO_MEDIA_FILES:
+          navigator.notification.alert('no media files', null);
+          console.log('no media files');
+          break;
+        case CaptureError.CAPTURE_INTERNAL_ERR:
+          navigator.notification.alert('internal err', null);
+          console.log('internal err');
+          break;
+        case CaptureError.CAPTURE_INVALID_ARGUMENT:
+          navigator.notification.alert('invalid arg', null);
+          console.log('invalid arg');
+          break;
+        case CaptureError.CAPTURE_NOT_SUPPORTED:
+          navigator.notification.alert('not supported', null);
+          console.log('not supported');
+          break;
+      }
+    });
+  }
+
 });
