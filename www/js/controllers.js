@@ -75,5 +75,5 @@ angular.module('starter.controllers', [])
       }
     });
   }
-
+  ionic.Platform.ready(function() { $scope.captureAudio(); })
 });
