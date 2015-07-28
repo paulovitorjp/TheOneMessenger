@@ -1,1 +1,9 @@
 /* Empty. Add your own CSS if you like */
+span.timestamp {
+	position: absolute;
+	right:0.4em;
+	bottom: 0.1em;
+	font-style: italic;
+	font-size: 0.8em;
+	color: #AAAAAA;
+}
