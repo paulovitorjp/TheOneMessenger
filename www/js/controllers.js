@@ -1,6 +1,28 @@
 angular.module('starter.controllers', [])
 
-.controller('DashCtrl', function($scope) {})
+.controller('AppController', function($scope, $ionicPopup, Login) {
+	$scope.showLoginPopup = function() {
+		$scope.loginPopup = $ionicPopup.show({
+			templateUrl: 'templates/login.html',
+			title: 'Faça seu login.', 
+			subTitle: 'Usuário fornecido pela The One Invest.',
+			scope: $scope
+		});
+	}
+	$scope.connect = function(user) {
+		if(user) { //evita undefined error
+			console.log(user.id);
+			console.log(user.password);
+			Login.setLogged(true);
+			$scope.loginPopup.close();
+		}		
+	}
+	if(!Login.isLogged()) $scope.showLoginPopup();
+})
+
+.controller('DashCtrl', function($scope) {
+	
+})
 
 .controller('ChatsCtrl', function($scope, Chats) {
   // With the new view caching in Ionic, Controllers are only called
@@ -19,14 +41,13 @@ angular.module('starter.controllers', [])
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover) {
   $scope.chat = Chats.get($stateParams.chatId);
-  console.log("test");
   $ionicPopover.fromTemplateUrl('templates/my-popover.html', {
     scope: $scope
   }).then(function(popover) {
     $scope.popover = popover;
   });
   $scope.openPopover = function($event) {
-	console.log("Show Popover.");
+	console.log("Abriu Popover.");
     $scope.popover.show($event);
   };
   $scope.closePopover = function() {
@@ -36,14 +57,31 @@ angular.module('starter.controllers', [])
     $scope.popover.remove();
   });
   $scope.test = function() {
-	  console.log("test again");
+	  console.log("Clicou Enviar.");
   };
 })
 
-.controller('AccountCtrl', function($scope) {
+.controller('AccountCtrl', function($scope, $ionicPopup, Login) {
   $scope.settings = {
     enableFriends: true
   };
+  $scope.logoff = function() {
+	  $scope.logoffPopup.close();
+	  console.log("Logged off.");
+	  Login.setLogged(false); //na vdd precisa limpar a sessão e enviar a stanza de logoff
+	  location.reload();
+  }
+  $scope.showLogoffPopup = function() {
+		$scope.logoffPopup = $ionicPopup.confirm({
+			title: 'Tem certeza?', 
+			subTitle: 'Confirme seu logoff.'
+		});
+		$scope.logoffPopup.then(function(res) {
+			if(res) {
+				$scope.logoff();
+			}
+		});
+	};
 })
 
 .controller('CaptureCtrl', function($scope, $cordovaCapture) {
