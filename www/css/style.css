@@ -7,3 +7,19 @@ span.timestamp {
 	font-size: 0.8em;
 	color: #AAAAAA;
 }
+
+span.status {
+	position: absolute;
+	right:0.4em;
+	top: 0.1em;
+}
+
+div.no-horizontal-padding {
+	padding-right: 0;
+	padding-left: 0;
+}
+
+#send {
+	margin-left: 0;
+	margin-right: 0;
+}

@@ -74,7 +74,7 @@ angular.module('starter.controllers', [])
   $scope.showLogoffPopup = function() {
 		$scope.logoffPopup = $ionicPopup.confirm({
 			title: 'Tem certeza?', 
-			subTitle: 'Confirme seu logoff.'
+			subTitle: 'Ao sair você não receberá notificações de novas mensagens.'
 		});
 		$scope.logoffPopup.then(function(res) {
 			if(res) {
@@ -113,5 +113,5 @@ angular.module('starter.controllers', [])
       }
     });
   }
-  ionic.Platform.ready(function() { $scope.captureAudio(); })
+  //ionic.Platform.ready(function() { $scope.captureAudio(); })
 });

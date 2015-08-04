@@ -8,25 +8,22 @@
   <ion-content class="padding">
     <ion-list>
 	<div class="card">
-      <ion-item class="item-remove-animate item-avatar" type="item-text-wrap">
-	  
+      <ion-item class="item-remove-animate item-text-wrap item-avatar">
+	  <!--<div class="item item-text-wrap">-->
         <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-		<p>
-			{{chat.lastText}}
-		</p>
+		<p class="text-wrap">	{{chat.lastText}} </p>
 		<span class="timestamp">{{chat.time}}</span>
 	  
-      </ion-item>
+      <!--</div>-->
+	  </ion-item>
 	  </div>
     </ion-list>
   </ion-content>
-  <div class="bar bar-footer item-input-inset">
+  <div class="bar bar-footer item-input-inset no-horizontal-padding">
     <button ng-click="openPopover($event)" class="button positive button-icon ion-plus"></button>
 	<label class="item-input-wrapper">
       <input type="text" placeholder="Enter your text here...">
     </label>
-	<button class="button button-positive" ng-click="test()">
-      Enviar
-    </button>
+	<button ng-click="test()" id="send" class="button positive button-icon ion-android-send" ></button>
   </div>
 </ion-view>

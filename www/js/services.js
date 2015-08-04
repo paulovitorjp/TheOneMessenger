@@ -9,31 +9,36 @@ angular.module('starter.services', [])
     name: 'Uesley Lima',
     lastText: 'You on your way?',
     face: 'img/uesley.jpg',
-	time: '09:50'
+	time: '09:50',
+	status: 'online'
   }, {
     id: 1,
     name: 'Fabiana Hofer',
     lastText: 'Hey, it\'s me',
     face: 'img/fabi.jpg',
-	time: '07:12'
+	time: '07:12',
+	status: 'online'
   }, {
     id: 2,
     name: 'Paulo Vitor Pereira',
     lastText: 'I should buy a boat',
     face: 'img/paulo.jpg',
-	time: 'Ontem 18:37'
+	time: 'Ontem 18:37',
+	status: 'away'
   }, {
     id: 3,
     name: 'Paulo Victor Maluf',
     lastText: 'Look at my mukluks!',
     face: 'img/maluf.jpg',
-	time: 'Ontem 07:56'
+	time: 'Ontem 07:56',
+	status: 'away'
   }, {
     id: 4,
     name: 'Rafael Grisanti',
-    lastText: 'This is wicked good ice cream.',
+    lastText: 'This is wicked good ice cream. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa.',
     face: 'img/grisanti.jpg',
-	time: '28/07/15 11:00'
+	time: '28/07/15 11:00',
+	status: 'offline'
   }];
 
   return {
