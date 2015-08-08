@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppController', function($scope, $ionicPopup, Login) {
+.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage) {
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
 			templateUrl: 'templates/login.html',
@@ -8,16 +8,35 @@ angular.module('starter.controllers', [])
 			subTitle: 'Usuário fornecido pela The One Invest.',
 			scope: $scope
 		});
-	}
+	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			console.log(user.id);
-			console.log(user.password);
-			Login.setLogged(true);
+			user.jid = user.jid + "@paulovitorjp.com";
+			$strophe.connect('connect', {
+                    jid: user.jid,
+                    password: user.password
+                });
 			$scope.loginPopup.close();
 		}		
+	};
+	if(!$strophe.isLogged()) {
+		console.log("User not logged, opening login popup.");
+		$scope.showLoginPopup();
 	}
-	if(!Login.isLogged()) $scope.showLoginPopup();
+	else {
+	  var jid = $localstorage.get("jid");
+	  if(jid && (jid!="")) {
+		  if (window.sessionStorage.getItem('strophe-bosh-session')) {
+			  console.log("User session stored, trying to reconnect.");
+			  $strophe.reconnect(jid);
+		  } else {
+			  console.log("Couldn't find session stored, opening login popup.");
+			  $scope.showLoginPopup();
+		  }
+	  } else {
+		console.log("ERROR logged set to TRUE and JID not set.");
+	  }
+	}
 })
 
 .controller('DashCtrl', function($scope) {
@@ -41,6 +60,7 @@ angular.module('starter.controllers', [])
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover) {
   $scope.chat = Chats.get($stateParams.chatId);
+  $scope.chat.unread= 0;
   $ionicPopover.fromTemplateUrl('templates/my-popover.html', {
     scope: $scope
   }).then(function(popover) {
@@ -61,14 +81,15 @@ angular.module('starter.controllers', [])
   };
 })
 
-.controller('AccountCtrl', function($scope, $ionicPopup, Login) {
+.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage) {
   $scope.settings = {
     enableFriends: true
   };
   $scope.logoff = function() {
 	  $scope.logoffPopup.close();
 	  console.log("Logged off.");
-	  Login.setLogged(false); //na vdd precisa limpar a sessão e enviar a stanza de logoff
+	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
+	  $localstorage.remove("chats");
 	  location.reload();
   }
   $scope.showLogoffPopup = function() {

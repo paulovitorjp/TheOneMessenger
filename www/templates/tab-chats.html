@@ -4,7 +4,7 @@
 	  <div class="bar bar-header item-input-inset">
 	    <ion-search placeholder="Procurar" filter="search"></ion-search>
 	  </div>
-      <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats | filter:search.value" type="item-text-wrap" href="#/tab/chats/{{chat.id}}">
+      <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats | filter:search.value" type="item-text-wrap" href="#/tab/chats/{{chat.jid}}">
         <img ng-src="{{chat.face}}">
         <h2>{{chat.name}}</h2>
         <p>{{chat.lastText}}</p>
@@ -12,6 +12,7 @@
 		<span ng-if="chat.status == 'online'" class="status"><i class="ion-record balanced"></i></span>
 		<span ng-if="chat.status == 'away'" class="status"><i class="ion-record energized"></i></span>
 		<span ng-if="chat.status == 'offline'" class="status"><i class="ion-record assertive"></i></span>
+		<span ng-if="!(chat.unread == 0)" class="unread">{{chat.unread}}</span>
 		<span class="timestamp">{{chat.time}}</span>
 
         <ion-option-button class="button-assertive" ng-click="remove(chat)">
