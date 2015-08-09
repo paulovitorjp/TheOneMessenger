@@ -86,6 +86,15 @@ angular.module('starter.controllers', [])
 
 .controller('AudioCtrl', function($scope, $cordovaCapture, $cordovaFileTransfer) {
 
+  $scope.tracks = [
+        {
+            url: 'http://paulovitorjp.com:8000/audio_005.wav',
+            artist: 'Mensagem de audio',
+            title: 'Paulo Victor Maluf',
+            art: 'img/maluf.jpg'
+        },
+    ],
+
   $scope.uploadAudio = function(filepath, name, mime){
     console.log("uploadAudio");
 

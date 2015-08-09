@@ -5,28 +5,38 @@
   The Friends service returns an array of friend data
 -->
 <ion-view view-title="{{chat.name}}">
-  <ion-content class="padding">
+  <ion-content class="padding" ng-controller="AudioCtrl">
     <ion-list>
-	<div class="card">
-      <ion-item class="item-remove-animate item-avatar" type="item-text-wrap">
-	  
-        <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-		<p>
-			{{chat.lastText}}
-		</p>
-		<span class="timestamp">{{chat.time}}</span>
-	  
-      </ion-item>
-	  </div>
+	    <div class="card">
+        <ion-item class="item-remove-animate item-avatar" type="item-text-wrap">
+          <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+		      <p>{{chat.lastText}}</p>
+		      <span class="timestamp">{{chat.time}}</span>
+	      </ion-item>
+	    </div>
     </ion-list>
+    <ion-audio-track ng-repeat="track in tracks" track="track">
+      <div class="card">
+        <div class="item item-thumbnail-left">
+          <img ng-src="{{track.art}}">
+          <h2>{{track.title}}</h2>
+          <p>{{track.artist}}</p>
+          <ion-audio-controls>
+            <a class="button button-icon icon" ion-audio-play></a>
+            <ion-spinner icon="ios" style="position: relative; top: 8px; left: 4px"></ion-spinner>
+          </ion-audio-controls>
+        </div>
+        <div class="item item-divider">
+          <ion-audio-progress-bar display-time></ion-audio-progress-bar>
+        </div>
+      </div>
+    </ion-audio-track>
   </ion-content>
   <div class="bar bar-footer item-input-inset">
     <button ng-click="openPopover($event)" class="button positive button-icon ion-plus"></button>
-	<label class="item-input-wrapper">
+	  <label class="item-input-wrapper">
       <input type="text" placeholder="Enter your text here...">
     </label>
-	<button class="button button-positive" ng-click="test()">
-      Enviar
-    </button>
+	  <button class="button button-positive" ng-click="test()">Enviar</button>
   </div>
 </ion-view>
