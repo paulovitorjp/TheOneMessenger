@@ -1,39 +1,54 @@
 angular.module('starter.services', [])
 
-.factory('Chats', function() {
+.factory('Chats', function($localstorage) {
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
   var chats = [{
-    id: 0,
+    jid: 0,
     name: 'Uesley Lima',
     lastText: 'You on your way?',
     face: 'img/uesley.jpg',
-	time: '09:50'
+	time: '09:50',
+	status: 'online',
+	unread: 1,
+	msgs: []
   }, {
-    id: 1,
+    jid: 1,
     name: 'Fabiana Hofer',
     lastText: 'Hey, it\'s me',
     face: 'img/fabi.jpg',
-	time: '07:12'
+	time: '07:12',
+	status: 'online',
+	unread: 0,
+	msgs: []
   }, {
-    id: 2,
+    jid: 2,
     name: 'Paulo Vitor Pereira',
     lastText: 'I should buy a boat',
     face: 'img/paulo.jpg',
-	time: 'Ontem 18:37'
+	time: 'Ontem',
+	status: 'away',
+	unread: 3,
+	msgs: []
   }, {
-    id: 3,
+    jid: 3,
     name: 'Paulo Victor Maluf',
     lastText: 'Look at my mukluks!',
     face: 'img/maluf.jpg',
-	time: 'Ontem 07:56'
+	time: 'Ontem',
+	status: 'away',
+	unread: 0,
+	msgs: []
   }, {
-    id: 4,
+    jid: 4,
     name: 'Rafael Grisanti',
-    lastText: 'This is wicked good ice cream.',
+    lastText: 'This is wicked good ice cream. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa.',
     face: 'img/grisanti.jpg',
-	time: '28/07/15 11:00'
+	time: '28/07/15',
+	status: 'offline',
+	unread: 7,
+	msgs: []
   }];
 
   return {
@@ -45,60 +60,207 @@ angular.module('starter.services', [])
     },
     get: function(chatId) {
       for (var i = 0; i < chats.length; i++) {
-        if (chats[i].id === parseInt(chatId)) {
+        if (chats[i].jid == chatId) {
           return chats[i];
         }
       }
       return null;
-    }
+    },
+	insert: function(contact) {
+		var found = false;
+		for (i=0;i<chats.length;i++) {
+			if(chats[i].jid == contact.jid) {
+				chats[i] = contact;
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			chats.unshift(contact);
+		}
+		$localstorage.setObject("chats", chats);
+	},
+	reset: function() {
+		//console.log("reset");//TODO remove this later
+		chats = [];
+		console.log("chats reset to empty");
+		if($localstorage.get("chats")) {
+			chats = $localstorage.getObject("chats");
+			console.log("chats reset to locally stored version");
+		}
+	}
   };
 })
 
-.factory('Login', function($localstorage) {
-  // Might use a resource here that returns a JSON array
+.service('$strophe', function($localstorage, Chats) {
+	
+	var self = this;
+	
+	var BOSH_SERVICE = 'http://paulovitorjp.com:7070/http-bind/';
 
-  // Some fake testing data
-  var user = {
-    id: 0,
-    logged: false,
-  };
-/**
-  getCookie = function (cname) {
-    var name = cname + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0; i<ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1);
-        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-    }
-    return "";
-  }
+	var connection = null;
+	  
+	var user = {
+	  jid: '',
+	  password: '',
+	  logged: false
+	};
   
-  setCookie = function(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays*24*60*60*1000));
-    var expires = "expires="+d.toUTCString();
-    document.cookie = cname + "=" + cvalue + "; " + expires + ";path=/";
-  }
-  **/
-  return {
-    user: function() {
-      return user;
-    },
-    isLogged: function() {
+	this.isLogged = function() {
 	  //var isLogged = getCookie("logged");
-	  var isLogged = $localstorage.get("logged");
-	  if(isLogged=="true") user.logged = true;
+	  var log = $localstorage.get("logged");
+	  if(log=="true") user.logged = true;
 	  else user.logged = false;
-      return user.logged;
-    },
-    setLogged: function(bool) {
-      user.logged = bool;
-      //setCookie("logged",bool,10);//10 dias expira
+	  return user.logged;
+	};
+	
+	this.setLogged = function(bool, jid) {
+	  user.logged = bool;
+	  //setCookie("logged",bool,10);//10 dias expira
 	  $localstorage.set("logged",bool);
-    }
-  };
-})
+	  if(bool) {
+		user.jid = jid;
+		$localstorage.set("jid",user.jid);
+	  }
+	  else $localstorage.set("jid","");
+	};
+	
+	this.connected = function () {
+		//console.log("connected called");
+		var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
+		connection.sendIQ(iq,self.on_roster);
+		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
+		connection.addHandler(self.on_message,null, "message", "chat");
+	}
+	
+	this.connect = function (ev, data) {
+		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
+
+		conn.connect(data.jid, data.password, function (status) {
+			if (status === Strophe.Status.CONNECTED) {
+				console.log("CONNECTED!");
+				self.setLogged(true,data.jid);
+				self.connected();
+				Chats.reset();
+				//$(document).trigger('connected');
+			} else if (status === Strophe.Status.DISCONNECTED) {
+				console.log("DISCONNECTED!");
+				self.setLogged(false);
+				//$(document).trigger('disconnected');
+			}
+		});
+		connection = conn;
+	};
+	
+	this.reconnect = function (jid) {
+		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
+		  
+		  //first tries to restore a previous connection
+		try {
+		conn.restore(jid, function (status) {
+			if (status === Strophe.Status.CONNECTED) {
+				console.log("CONNECTED");
+				self.setLogged(true,jid);
+				self.connected();
+				Chats.reset();
+				//$(document).trigger('connected');
+			} else if (status === Strophe.Status.DISCONNECTED) {
+				console.log("DISCONNECTED!");
+				self.setLogged(false);
+				//$(document).trigger('disconnected');
+			} else if (status === Strophe.Status.ATTACHED){
+				console.log("RECONNECTED");
+				self.setLogged(true,jid);
+				Chats.reset();
+				self.connected();
+			}
+		});
+		} catch(e) {//TODO here the login popup should open again
+			console.log("COULD NOT RESTORE CONNECTION.");
+			self.setLogged(false);
+		}
+	};
+	
+	this.on_roster = function(iq) {
+		//
+		console.log("on_roster ...");
+		console.log(iq);
+		//Chats.reset();
+		$(iq).find('item').each(function () {
+            var jid = $(this).attr('jid');
+            var name = $(this).attr('name') || jid;
+
+            // transform jid into an id
+            //var jid_id = Gab.jid_to_id(jid);
+			
+			var contact = {
+				jid: jid,
+				name: name,
+				face: 'img/uesley.jpg',
+				status: 'offline',
+				unread: 0,
+				msgs: []
+			}
+            Chats.insert(contact);
+        });
+
+        // set up presence handler and send initial presence
+        //connection.addHandler(Gab.on_presence, null, "presence");
+        //connection.send($pres());
+	};
+	
+	this.on_roster_changed = function() {
+		//
+		console.log("on_roster_changed...");
+	};
+	
+	this.on_message = function() {
+		//
+		console.log("on_message arrived...");
+	};
+	
+	this.on_presence = function(presence) {
+		/**
+		console.log("on_presence arrived...");
+		var ptype = $(presence).attr('type');
+        var from = $(presence).attr('from');
+        var jid_id = Gab.jid_to_id(from);
+
+        if (ptype === 'subscribe') {
+            // populate pending_subscriber, the approve-jid span, and
+            // open the dialog
+            Gab.pending_subscriber = from;
+            $('#approve-jid').text(Strophe.getBareJidFromJid(from));
+            $('#approve_dialog').dialog('open');
+        } else if (ptype !== 'error') {
+            var contact = $('#roster-area li#' + jid_id + ' .roster-contact')
+                .removeClass("online")
+                .removeClass("away")
+                .removeClass("offline");
+            if (ptype === 'unavailable') {
+                contact.addClass("offline");
+            } else {
+                var show = $(presence).find("show").text();
+                if (show === "" || show === "chat") {
+                    contact.addClass("online");
+                } else {
+                    contact.addClass("away");
+                }
+            }
+
+            var li = contact.parent();
+            li.remove();
+            Gab.insert_contact(li);
+        }
+
+        // reset addressing for user since their presence changed
+        var jid_id = Gab.jid_to_id(from);
+        $('#chat-' + jid_id).data('jid', Strophe.getBareJidFromJid(from));
+
+        return true;**/
+	};
+  }
+)
 
 .factory('$localstorage', ['$window', function($window) {
   return {
@@ -113,6 +275,9 @@ angular.module('starter.services', [])
     },
     getObject: function(key) {
       return JSON.parse($window.localStorage[key] || '{}');
-    }
+    },
+	remove: function(key) {
+		$window.localStorage.removeItem(key);
+	}
   }
 }]);
