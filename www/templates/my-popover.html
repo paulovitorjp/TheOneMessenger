@@ -1,8 +1,9 @@
   <ion-popover-view style="width:122px;height:67px;">
-	<ion-content scroll="false" ng-controller="CaptureCtrl">
+	<ion-content scroll="false" ng-controller="ImageCtrl">
 	  <div class="row">
-        <div class="col"><center><button ng-click="captureAudio()" class="button positive button-icon icon ion-mic-a"></button></center></div>
-        <div class="col"><center><button class="button positive button-icon icon ion-android-attach"></button></center></div>
+        <!-- <div class="col"><center><button ng-click="captureAudio()" class="button positive button-icon icon ion-mic-a"></button></center></div> -->
+        <div class="col"><center><button ng-click="addImage(1)" class="button positive button-icon icon ion-android-attach"></button></center></div>
+        <div class="col"><center><button ng-click="addImage(0)" class="button positive button-icon icon ion-camera"></button></center></div>
       </div>
 	</ion-content>
   </ion-popover-view>

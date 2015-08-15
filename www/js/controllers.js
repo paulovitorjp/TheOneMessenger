@@ -39,8 +39,7 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('DashCtrl', function($scope) {
-	
+.controller('DashCtrl', function($scope) {	
 })
 
 .controller('ChatsCtrl', function($scope, Chats, $strophe) {
@@ -120,16 +119,79 @@ angular.module('starter.controllers', [])
 	};
 })
 
-.controller('CaptureCtrl', function($scope, $cordovaCapture) {
+.controller('ImageCtrl', function($scope, $cordovaDevice, $cordovaFile, $ionicPlatform, ImageService, FileService) {
+ 
+  $ionicPlatform.ready(function() {
+    $scope.images = FileService.images();
+    if(!$scope.$$phase) {
+      $scope.$apply();
+    }
+  });
+ 
+  $scope.urlForImage = function(imageName) {
+    console.log('[urlForImage]');
+    var trueOrigin = cordova.file.dataDirectory + imageName;
+    console.log('[urlForImage] trueOrigin: ' + trueOrigin);
+    return trueOrigin;
+  }
+
+  $scope.addImage = function(type) {
+    ImageService.handleMediaDialog(type).then(function() {
+      if(!$scope.$$phase) {
+        $scope.$apply();
+      }
+    });
+  } 
+})
+
+.controller('AudioCtrl', function($scope, $cordovaCapture, $cordovaFileTransfer) {
+
+  $scope.tracks = [
+        {
+            url: 'http://paulovitorjp.com:8000/audio_005.wav',
+            artist: 'Mensagem de audio',
+            title: 'Paulo Victor Maluf',
+            art: 'img/maluf.jpg'
+        },
+    ],
+
+  $scope.uploadAudio = function(filepath, name, mime){
+    console.log("uploadAudio");
+
+    var url = "http://paulovitorjp.com:8000";
+    var options = {
+          fileKey: 'upfile',
+          fileName: name,
+          chunkedMode: true,
+          mimeType: mime
+    };
+    console.log(options + " " + filepath);
+
+    if (filepath){
+      $cordovaFileTransfer.upload(url, filepath, options).then(function(result) {
+        console.log("SUCCESS: " + result.response);
+        }, function(err) {
+             console.log("ERROR: " + err);
+        });
+    }
+  };
 
   $scope.captureAudio = function() {
     var options = { limit: 1, duration: 10 };
 
-    $cordovaCapture.captureAudio(options).then(function(audioData) {
-      // Success! Audio data is here
-    }, function(error) {
-      // An error occurred. Show a message to the user
-      switch (error) {
+    $cordovaCapture.captureAudio(options).then(function(mediaFiles) {
+      console.log("Success! Audio data is here");
+      var i, path, name, mime, len;
+      for (i = 0, len = mediaFiles.length; i < len; i += 1) {
+          path = mediaFiles[i].fullPath;
+          name = mediaFiles[i].name;
+          mime = mediaFiles[i].type;
+          console.log("Loop: " + i + " Path: " + path + " Name: " + name + " Mime: " + mime);
+          $scope.uploadAudio(path, name, mime);
+      }
+    },
+    function(err){
+      switch (err) {
         case CaptureError.CAPTURE_NO_MEDIA_FILES:
           navigator.notification.alert('no media files', null);
           console.log('no media files');
@@ -148,6 +210,5 @@ angular.module('starter.controllers', [])
           break;
       }
     });
-  }
-  //ionic.Platform.ready(function() { $scope.captureAudio(); })
+  };
 });
