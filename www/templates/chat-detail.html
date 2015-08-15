@@ -6,18 +6,27 @@
 -->
 <ion-view view-title="{{chat.name}}">
   <ion-content class="padding">
+    <div id="scrollDiv">
     <ion-list>
-	<div class="card">
-      <ion-item class="item-remove-animate item-text-wrap item-avatar">
-	  <!--<div class="item item-text-wrap">-->
+	<div class="card" ng-repeat="msg in chat.msgs">
+	<!-- from them -->
+      <ion-item ng-if="msg.type != 'composing' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
         <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-		<p class="text-wrap">	{{chat.lastText}} </p>
-		<span class="timestamp">{{chat.time}}</span>
-	  
-      <!--</div>-->
+		<p class="text-wrap">{{msg.content}}</p>
+		<span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
 	  </ion-item>
-	  </div>
+	  <!-- from you -->
+	  <ion-item ng-if="msg.type != 'composing' && msg.from == 'me'" class="item-remove-animate item-text-wrap your-message">
+		<p class="text-wrap">{{msg.content}}</p>
+		<span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+	  </ion-item>
+	  <!-- is typing... -->
+	  <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
+	</div>
     </ion-list>
+	<br> <!--so that last message doesn't stay behind the footer-->
+	<a id="bottom"></a>
+	</div>
   </ion-content>
   <div class="bar bar-footer item-input-inset no-horizontal-padding">
     <button ng-click="openPopover($event)" class="button positive button-icon ion-plus"></button>

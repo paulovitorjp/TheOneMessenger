@@ -28,6 +28,16 @@ div.no-horizontal-padding {
 	padding-left: 0;
 }
 
+span.composing {
+	padding-left: 0.5em;
+	font-style: italic;
+	color: #AAAAAA;
+}
+
+.your-message {
+	text-align: right;	
+}
+
 #send {
 	margin-left: 0;
 	margin-right: 0;

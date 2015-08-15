@@ -11,7 +11,7 @@ angular.module('starter.controllers', [])
 	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			user.jid = user.jid + "@paulovitorjp.com";
+			user.jid = user.jid + "@localhost"; //change to paulovitorjp.com
 			$strophe.connect('connect', {
                     jid: user.jid,
                     password: user.password
@@ -43,7 +43,7 @@ angular.module('starter.controllers', [])
 	
 })
 
-.controller('ChatsCtrl', function($scope, Chats) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -51,16 +51,30 @@ angular.module('starter.controllers', [])
   //
   //$scope.$on('$ionicView.enter', function(e) {
   //});
-
+  Chats.setCurrent(null);
   $scope.chats = Chats.all();
   $scope.remove = function(chat) {
     Chats.remove(chat);
   };
+  Chats.setChatsScope($scope);
 })
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover) {
+.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $location, $anchorScroll, $ionicScrollDelegate) {
   $scope.chat = Chats.get($stateParams.chatId);
-  $scope.chat.unread= 0;
+  Chats.setCurrent($stateParams.chatId);
+  $scope.chats = Chats.all();
+  $scope.$on('newMsg',function(event, data) {
+	  $ionicScrollDelegate.scrollBottom(false);
+	  console.log("scroll");
+  });
+  /**
+  $scope.$watch($scope.newMSG, function(newValue,oldValue) {
+	  $ionicScrollDelegate.scrollBottom(false);
+	  console.log("scroll");
+  });**/
+  if($scope.chat != null) {
+	  $scope.chat.unread= 0;
+  }
   $ionicPopover.fromTemplateUrl('templates/my-popover.html', {
     scope: $scope
   }).then(function(popover) {
@@ -75,6 +89,7 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$destroy', function() {
     $scope.popover.remove();
+	Chats.setCurrent(null);
   });
   $scope.test = function() {
 	  console.log("Clicou Enviar.");
@@ -89,7 +104,7 @@ angular.module('starter.controllers', [])
 	  $scope.logoffPopup.close();
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
-	  $localstorage.remove("chats");
+	  $localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
 	  location.reload();
   }
   $scope.showLogoffPopup = function() {

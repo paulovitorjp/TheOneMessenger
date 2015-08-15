@@ -1,0 +1,14 @@
+-* wrong password, inform user
+-* when logoff, send presence
+- if remote is composing, and other remote send msg, the remote's lastText will be saved as 'está escrevendo'...
+-* load saved msgs when app loads, not when user logs in
+-* show 'disconnected' status when not logged in
+-* develop subscription presence code, to show subscription requests in the dash page
+-* add MUC functionality
+OK - scroll to last message
+-* accent tilde fix "que horas sÃ£o"
+- fix dates so it would show only the hours and minutes for messages sent today, and date and hours and minutes for msgs sent before today
+-* feature to add user/room
+OK - add unread msgs
+- If a user is at the account tab ot status tab after beign at a chat detail, the unread counter won't increase
+-* sort chats by last message
