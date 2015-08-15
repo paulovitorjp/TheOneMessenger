@@ -5,7 +5,8 @@
   The Friends service returns an array of friend data
 -->
 <ion-view view-title="{{chat.name}}">
-  <ion-content class="padding" ng-controller="AudioCtrl">
+  <ion-content class="padding">
+  <!-- <ion-content class="padding" ng-controller="AudioCtrl"> -->
     <ion-list>
 	    <div class="card">
         <ion-item class="item-remove-animate item-avatar" type="item-text-wrap">
@@ -15,7 +16,7 @@
 	      </ion-item>
 	    </div>
     </ion-list>
-    <ion-audio-track ng-repeat="track in tracks" track="track">
+    <!-- <ion-audio-track ng-repeat="track in tracks" track="track">
       <div class="card">
         <div class="item item-thumbnail-left">
           <img ng-src="{{track.art}}">
@@ -30,7 +31,7 @@
           <ion-audio-progress-bar display-time></ion-audio-progress-bar>
         </div>
       </div>
-    </ion-audio-track>
+    </ion-audio-track> -->
   </ion-content>
   <div class="bar bar-footer item-input-inset no-horizontal-padding">
     <button ng-click="openPopover($event)" class="button positive button-icon ion-plus"></button>

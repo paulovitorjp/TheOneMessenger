@@ -95,9 +95,9 @@ angular.module('ionic-audio', ['ionic'])
             }
 
             return new Media(track.url,
-                angular.bind(track, onSuccess),
-                angular.bind(track, onError),
-                angular.bind(track, onStatusChange));
+               angular.bind(track, onSuccess),
+               angular.bind(track, onError),
+               angular.bind(track, onStatusChange));
 
         };
 
