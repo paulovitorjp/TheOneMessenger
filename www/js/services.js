@@ -290,7 +290,7 @@ angular.module('starter.services', [])
   }
 })
 
-.factory('ImageService', function($cordovaCamera, FileService, $q, $cordovaFile) {
+.factory('ImageService', function($cordovaCamera, FileService, $q, $cordovaFile, $cordovaFileTransfer) {
  
   function makeid() {
   	console.log("[ImageService] makeid");
@@ -324,6 +324,26 @@ angular.module('starter.services', [])
     };
   }
  
+  function uploadMedia(name, filepath){
+    console.log("[uploadmedia]");
+    var url = "http://paulovitorjp.com:8000";
+    var options = {
+          fileKey: 'upfile',
+          fileName: name,
+          chunkedMode: true,
+          mimeType: 'image/jpeg'
+    };
+    console.log(options + " " + filepath);
+
+    if (filepath){
+      $cordovaFileTransfer.upload(url, filepath, options).then(function(result) {
+        console.log("SUCCESS: " + result.response);
+        }, function(err) {
+             console.log("ERROR: " + err);
+        });
+    }
+  };
+
   function saveMedia(type) {
   	console.log("[ImageService] saveMedia");
     return $q(function(resolve, reject) {
@@ -333,7 +353,8 @@ angular.module('starter.services', [])
         var name = imageUrl.substr(imageUrl.lastIndexOf('/') + 1);
         var namePath = imageUrl.substr(0, imageUrl.lastIndexOf('/') + 1);
         var newName = makeid() + name;
-        console.log("[saveMedia]\nname: " + name + "\nnamePath: " + namePath + "\nnewName: " + newName);
+        console.log("[saveMedia]\nname: " + name + "\nnamePath: " + namePath + "\nnewName: " + newName + "\nDataDirectory: " + cordova.file.dataDirectory );
+        uploadMedia(newName, namePath + newName);
         $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
           .then(function(info) {
             FileService.storeImage(newName);

@@ -121,7 +121,7 @@ angular.module('starter.controllers', [])
     console.log('[urlForImage] trueOrigin: ' + trueOrigin);
     return trueOrigin;
   }
- 
+
   $scope.addImage = function(type) {
     ImageService.handleMediaDialog(type).then(function() {
       if(!$scope.$$phase) {
