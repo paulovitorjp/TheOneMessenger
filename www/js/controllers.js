@@ -129,12 +129,13 @@ angular.module('starter.controllers', [])
 	};
 })
 
-.controller('ImageCtrl', function($scope, Upload){
+.controller('ImageCtrl', function($scope, Upload, Chats){
   $scope.uploadImage = function(type) {
     Upload.fileTo("http://paulovitorjp.com:8000", type).then(
       function(res) {
         success = JSON.stringify(res);
         // Success
+        Chats.addMessage($scope.chat.jid, "[Audio: " + res + "]", 'me');
         console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
