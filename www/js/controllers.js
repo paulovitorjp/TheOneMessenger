@@ -133,11 +133,12 @@ angular.module('starter.controllers', [])
   $scope.uploadImage = function(type) {
     Upload.fileTo("http://paulovitorjp.com:8000", type).then(
       function(res) {
+        success = JSON.stringify(res);
         // Success
-        console.log("[UploadCtrl] Success");
+        console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
-        console.log("[UploadCtrl] Error");
+        console.log("[UploadCtrl] Error: " + err);
       });
   };
 })

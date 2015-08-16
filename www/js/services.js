@@ -438,10 +438,19 @@ angular.module('starter.services', [])
 
         return true;
 	};
-  }
-)
+})
 
 .factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer) {
+  
+    function makeid() {
+      var text = '';
+      var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+ 
+      for (var i = 0; i < 5; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
+    };
 
     return {
       fileTo: function(serverURL, type) {
@@ -474,13 +483,13 @@ angular.module('starter.services', [])
 
             var uploadOptions = new FileUploadOptions();
             uploadOptions.fileKey = "upfile";
-            uploadOptions.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
+            uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1);
             uploadOptions.mimeType = "image/jpeg";
             uploadOptions.chunkedMode = false;
 
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
-                deferred.resolve(result);
+                deferred.resolve(uploadOptions.fileName);
               }, function(err) {
                 deferred.reject(err);
               });
@@ -495,6 +504,7 @@ angular.module('starter.services', [])
         }
     }
 })
+
 .factory('$localstorage', ['$window', function($window) {
   return {
     set: function(key, value) {
