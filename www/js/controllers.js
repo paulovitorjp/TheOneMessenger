@@ -60,8 +60,9 @@ angular.module('starter.controllers', [])
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $location, $anchorScroll, $ionicScrollDelegate) {
   $scope.chat = Chats.get($stateParams.chatId);
+  $scope.textMessage = '';
   Chats.setCurrent($stateParams.chatId);
-  $scope.chats = Chats.all();
+  //$scope.chats = Chats.all();
   $scope.$on('newMsg',function(event, data) {
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
@@ -90,8 +91,17 @@ angular.module('starter.controllers', [])
     $scope.popover.remove();
 	Chats.setCurrent(null);
   });
-  $scope.test = function() {
-	  console.log("Clicou Enviar.");
+  $scope.enter = function(ev) {
+	  if(ev.which == 13) {//verifica se foi um enter
+		  $scope.send();
+	  }
+  };
+  $scope.send = function() {
+	  if($scope.textMessage != '') { // só envia se realmente tem msg
+		  console.log($scope.textMessage);
+		  Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me');
+		  $scope.textMessage = '';
+	  }
   };
 })
 

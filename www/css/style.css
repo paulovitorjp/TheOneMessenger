@@ -36,6 +36,16 @@ span.composing {
 
 .your-message {
 	text-align: right;	
+	background-color: #fafaff;
+}
+
+.your-timestamp {
+	position: absolute;
+	left:0.4em;
+	bottom: 0.1em;
+	font-style: italic;
+	font-size: 0.8em;
+	color: #AAAAAA;
 }
 
 #send {

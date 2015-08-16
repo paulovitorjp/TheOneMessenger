@@ -12,3 +12,5 @@ OK - scroll to last message
 OK - add unread msgs
 - If a user is at the account tab ot status tab after beign at a chat detail, the unread counter won't increase
 -* sort chats by last message
+-* push notifications (ios/android) + sound
+- usar a data e horario que a mensagem foi enviada, nao recebida - talvez

@@ -102,10 +102,10 @@ angular.module('starter.services', [])
 		  }
 	  }
 	},
-	addMessage: function(chat, message, type, from) {
+	addMessage: function(chat, message, from) {
 		for (var i=0;i<chats.length;i++) {
 		  if (chats[i].jid == chat) {
-			  chats[i].status = 'online';
+			  //chats[i].status = 'online';
 			  if(chats[i].msgs.length>=1 && chats[i].msgs[chats[i].msgs.length-1].type=='composing') {
 				  chats[i].msgs.pop();
 			  }
@@ -117,6 +117,7 @@ angular.module('starter.services', [])
 			  var minutes = (now.getMinutes()<10)?'0'+now.getMinutes():now.getMinutes(); //adds left zero
 			  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
 			  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
+			  var type = 'text'; // change this to a if that reads the content of the message looking for the type of file
 			  var msg = {type: type, content: message, time: fullTime, from: from};
 			  chats[i].msgs.push(msg);
 			  chats[i].lastText = message;
@@ -126,7 +127,9 @@ angular.module('starter.services', [])
 				  chats[i].unread++;
 			  }
 			  $localstorage.setObject("chats", chats);
-			  chatsScope.$apply();
+			  if(from!='me') {
+				chatsScope.$apply();
+			  }
 			  $rootScope.$broadcast('newMsg', {data: 'something'});
 			  //var elem = document.getElementById('scrollDiv');
 			  //elem.scrollTop = elem.scrollHeight;
@@ -256,7 +259,7 @@ angular.module('starter.services', [])
 				console.log("CONNECTED");
 				self.setLogged(true,jid);
 				self.connected();
-				self.presence();
+				//self.presence();
 				Chats.reset();
 				//$(document).trigger('connected');
 			} else if (status === Strophe.Status.DISCONNECTED) {
@@ -268,9 +271,9 @@ angular.module('starter.services', [])
 				connection = conn;
 				console.log("RECONNECTED");
 				self.setLogged(true,jid);
-				Chats.reset();
 				self.connected();
-				self.presence();
+				Chats.reset();
+				//self.presence();
 			}
 		});
 		} catch(e) {//TODO here the login popup should open again
@@ -391,7 +394,7 @@ angular.module('starter.services', [])
                 .append(body);
 
             Gab.scroll_chat(jid_id);**/
-			Chats.addMessage(jid,body,'text',jid);//(qual chat, conteudo, tipo, remetente)
+			Chats.addMessage(jid,body,jid);//(qual chat, conteudo, tipo, remetente)
         }		
 		
 		return true;
@@ -492,7 +495,6 @@ angular.module('starter.services', [])
         }
     }
 })
-
 .factory('$localstorage', ['$window', function($window) {
   return {
     set: function(key, value) {
