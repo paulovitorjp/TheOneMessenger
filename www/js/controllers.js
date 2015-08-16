@@ -11,7 +11,7 @@ angular.module('starter.controllers', [])
 	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			user.jid = user.jid + "@localhost"; //change to paulovitorjp.com
+			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
 			$strophe.connect('connect', {
                     jid: user.jid,
                     password: user.password
@@ -119,29 +119,17 @@ angular.module('starter.controllers', [])
 	};
 })
 
-.controller('ImageCtrl', function($scope, $cordovaDevice, $cordovaFile, $ionicPlatform, ImageService, FileService) {
- 
-  $ionicPlatform.ready(function() {
-    $scope.images = FileService.images();
-    if(!$scope.$$phase) {
-      $scope.$apply();
-    }
-  });
- 
-  $scope.urlForImage = function(imageName) {
-    console.log('[urlForImage]');
-    var trueOrigin = cordova.file.dataDirectory + imageName;
-    console.log('[urlForImage] trueOrigin: ' + trueOrigin);
-    return trueOrigin;
-  }
-
-  $scope.addImage = function(type) {
-    ImageService.handleMediaDialog(type).then(function() {
-      if(!$scope.$$phase) {
-        $scope.$apply();
-      }
-    });
-  } 
+.controller('ImageCtrl', function($scope, Upload){
+  $scope.uploadImage = function(type) {
+    Upload.fileTo("http://paulovitorjp.com:8000", type).then(
+      function(res) {
+        // Success
+        console.log("[UploadCtrl] Success");
+      }, function(err) {
+        // Error
+        console.log("[UploadCtrl] Error");
+      });
+  };
 })
 
 .controller('AudioCtrl', function($scope, $cordovaCapture, $cordovaFileTransfer) {

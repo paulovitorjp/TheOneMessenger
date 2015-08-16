@@ -184,7 +184,7 @@ angular.module('starter.services', [])
 	
 	var self = this;
 	
-	var BOSH_SERVICE = 'http://localhost:7070/http-bind/';
+	var BOSH_SERVICE = 'http://paulovitorjp.com:7070/http-bind/';
 
 	var connection = null;
 	
@@ -438,112 +438,59 @@ angular.module('starter.services', [])
   }
 )
 
-.factory('FileService', function() {
-  console.log("[FileService]");
-  var images;
-  var IMAGE_STORAGE_KEY = 'images';
- 
-  function getImages() {
-  	console.log("[FileService] getImages");
-    var img = window.localStorage.getItem(IMAGE_STORAGE_KEY);
-    if (img) {
-      images = JSON.parse(img);
-    } else {
-      images = [];
-    }
-    return images;
-  };
- 
-  function addImage(img) {
-  	console.log("[FileService] addImage");
-    images.push(img);
-    window.localStorage.setItem(IMAGE_STORAGE_KEY, JSON.stringify(images));
-  };
+.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer) {
 
-  return {
-    storeImage: addImage,
-    images: getImages
-  }
-})
-
-.factory('ImageService', function($cordovaCamera, FileService, $q, $cordovaFile, $cordovaFileTransfer) {
- 
-  function makeid() {
-  	console.log("[ImageService] makeid");
-    var text = '';
-    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
- 
-    for (var i = 0; i < 5; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-  };
- 
-  function optionsForType(type) {
-  	console.log("[ImageService] optionsForType");
-    var source;
-    switch (type) {
-      case 0:
-        source = Camera.PictureSourceType.CAMERA;
-        break;
-      case 1:
-        source = Camera.PictureSourceType.PHOTOLIBRARY;
-        break;
-    }
     return {
-      destinationType: Camera.DestinationType.FILE_URI,
-      sourceType: source,
-      allowEdit: false,
-      encodingType: Camera.EncodingType.JPEG,
-      popoverOptions: CameraPopoverOptions,
-      saveToPhotoAlbum: false
-    };
-  }
- 
-  function uploadMedia(name, filepath){
-    console.log("[uploadmedia]");
-    var url = "http://paulovitorjp.com:8000";
-    var options = {
-          fileKey: 'upfile',
-          fileName: name,
-          chunkedMode: true,
-          mimeType: 'image/jpeg'
-    };
-    console.log(options + " " + filepath);
+      fileTo: function(serverURL, type) {
+      var deferred = $q.defer();
 
-    if (filepath){
-      $cordovaFileTransfer.upload(url, filepath, options).then(function(result) {
-        console.log("SUCCESS: " + result.response);
-        }, function(err) {
-             console.log("ERROR: " + err);
-        });
-    }
-  };
+      if (ionic.Platform.isWebView()) {
+        var source;
+        switch (type) {
+          case 0:
+            source = Camera.PictureSourceType.CAMERA;
+            break;
+          case 1:
+            source = Camera.PictureSourceType.PHOTOLIBRARY;
+            break;
+        }
 
-  function saveMedia(type) {
-  	console.log("[ImageService] saveMedia");
-    return $q(function(resolve, reject) {
-      var options = optionsForType(type);
- 
-      $cordovaCamera.getPicture(options).then(function(imageUrl) {
-        var name = imageUrl.substr(imageUrl.lastIndexOf('/') + 1);
-        var namePath = imageUrl.substr(0, imageUrl.lastIndexOf('/') + 1);
-        var newName = makeid() + name;
-        console.log("[saveMedia]\nname: " + name + "\nnamePath: " + namePath + "\nnewName: " + newName + "\nDataDirectory: " + cordova.file.dataDirectory );
-        uploadMedia(newName, namePath + newName);
-        $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
-          .then(function(info) {
-            FileService.storeImage(newName);
-            resolve();
-          }, function(e) {
-            reject();
+        var options =   {
+          destinationType: Camera.DestinationType.FILE_URI,
+          sourceType: source,
+          allowEdit: false,
+          encodingType: Camera.EncodingType.JPEG,
+          popoverOptions: CameraPopoverOptions,
+          saveToPhotoAlbum: false,
+          quality: 100
+        }
+
+        $cordovaCamera.getPicture(options).then(
+
+          function(fileURL) {
+
+            var uploadOptions = new FileUploadOptions();
+            uploadOptions.fileKey = "upfile";
+            uploadOptions.fileName = fileURL.substr(fileURL.lastIndexOf('/') + 1);
+            uploadOptions.mimeType = "image/jpeg";
+            uploadOptions.chunkedMode = false;
+
+            $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
+              function(result) {
+                deferred.resolve(result);
+              }, function(err) {
+                deferred.reject(err);
+              });
+          }, function(err){
+            deferred.reject(err);
           });
-      });
-    })
-  }
-  return {
-    handleMediaDialog: saveMedia
-  }
+      }
+      else {
+        deferred.reject('Uploading not supported in browser');
+      }
+      return deferred.promise;
+        }
+    }
 })
 
 .factory('$localstorage', ['$window', function($window) {
