@@ -9,44 +9,38 @@
     <div id="scrollDiv">
       <ion-list>
 	      <div class="card" ng-repeat="msg in chat.msgs">
-	        <!-- from them -->
+	      <!-- text type: Others -->
           <ion-item ng-if="msg.type == 'text' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
-            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+				<img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
 		        <p class="text-wrap">{{msg.content}}</p>
 		        <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-	        </ion-item>
-	        <!-- from you -->
-	        <ion-item ng-if="msg.type == 'text' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
+	      </ion-item>
+	      <!-- text type: Me -->
+	      <ion-item ng-if="msg.type == 'text' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
 		        <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
 		        <p class="text-wrap">{{msg.content}}</p>
 		        <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-	        </ion-item>
-          <!-- image type: Me -->
-          <ion-item ng-if="msg.type != 'composing' && msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
-            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-            <!-- <p class="text-wrap">{{msg.content}}</p> -->
-            <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-            <div-class="item item-body">
-              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
-            </div>
-          </ion-item>
+	      </ion-item>
           <!-- image type: Others -->
-          <ion-item ng-if="msg.type != 'composing' && msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
+          <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-            <!-- <p class="text-wrap">{{msg.content}}</p> -->
-            <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-            <div-class="item item-body">
+            <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
               <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
-            </div>
           </ion-item>
-	        <!-- is typing... -->
+		  <!-- image type: Me -->
+          <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
+            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+            <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
+          </ion-item>
+	      <!-- is typing... -->
 	        <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
 	      </div>
       </ion-list>
-	    <br> <!--so that last message doesn't stay behind the footer-->
-	    <a id="bottom"></a>
-	  </div>
-  <!-- <ion-content class="padding" ng-controller="AudioCtrl"> -->
+	  <br> <!--so that last message doesn't stay behind the footer-->
+	  <a id="bottom"></a>
+	</div>
+  <!-- ion-content class="padding" ng-controller="AudioCtrl"> -->
     <!-- <ion-audio-track ng-repeat="track in tracks" track="track">
       <div class="card">
         <div class="item item-thumbnail-left">

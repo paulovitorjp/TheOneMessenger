@@ -58,20 +58,14 @@ angular.module('starter.controllers', [])
   Chats.setChatsScope($scope);
 })
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $location, $anchorScroll, $ionicScrollDelegate) {
+.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $ionicScrollDelegate, $strophe) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   Chats.setCurrent($stateParams.chatId);
-  //$scope.chats = Chats.all();
   $scope.$on('newMsg',function(event, data) {
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
   });
-  /**
-  $scope.$watch($scope.newMSG, function(newValue,oldValue) {
-	  $ionicScrollDelegate.scrollBottom(false);
-	  console.log("scroll");
-  });**/
   if($scope.chat != null) {
 	  $scope.chat.unread= 0;
   }
@@ -99,7 +93,8 @@ angular.module('starter.controllers', [])
   $scope.send = function() {
 	  if($scope.textMessage != '') { // só envia se realmente tem msg
 		  console.log($scope.textMessage);
-		  Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me');
+		  $strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
+		  //Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
 		  $scope.textMessage = '';
 	  }
   };
@@ -129,13 +124,14 @@ angular.module('starter.controllers', [])
 	};
 })
 
-.controller('ImageCtrl', function($scope, Upload, Chats){
+.controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
   $scope.uploadImage = function(type) {
     Upload.fileTo("http://paulovitorjp.com:8000", type).then(
       function(res) {
         success = JSON.stringify(res);
         // Success
-        Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me');
+		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
+        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
         console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
