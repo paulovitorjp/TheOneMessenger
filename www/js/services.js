@@ -324,6 +324,15 @@ angular.module('starter.services', [])
 		return true;
 	};
 	
+	this.send_message = function(jid, body, from) {
+		Chats.addMessage(jid, body, from);
+		var message = $msg({to: jid, "type": "chat"}).c('body').t(body).up()
+                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+        connection.send(message);
+		console.log("on_roster_changed...");
+		return true;
+	};
+	
 	this.on_message = function(message) {
 		//
 		console.log("on_message arrived...");
