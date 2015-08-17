@@ -6,7 +6,7 @@
 -* develop subscription presence code, to show subscription requests in the dash page
 -* add MUC functionality
 OK - scroll to last message
--* accent tilde fix "que horas sÃ£o"
+OK -* accent tilde fix "que horas sÃ£o"
 - fix dates so it would show only the hours and minutes for messages sent today, and date and hours and minutes for msgs sent before today
 -* feature to add user/room
 OK - add unread msgs
