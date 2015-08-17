@@ -538,6 +538,10 @@ angular.module('starter.services', [])
             uploadOptions.mimeType = "image/jpeg";
             uploadOptions.chunkedMode = false;
 
+            var test = fileURL.type ; 
+
+            console.log("file type: " + test);
+
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
                 deferred.resolve(uploadOptions.fileName);
