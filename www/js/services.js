@@ -257,22 +257,46 @@ angular.module('starter.services', [])
 	
 	this.connect = function (ev, data) {
 		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
-
-		conn.connect(data.jid, data.password, function (status) {
-			if (status === Strophe.Status.CONNECTED) {
-				connection = conn;
-				console.log("CONNECTED!");
-				self.setLogged(true,data.jid);
-				self.connected();
-				Chats.reset();
-				//$(document).trigger('connected');
-			} else if (status === Strophe.Status.DISCONNECTED) {
-				connection = conn;
-				console.log("DISCONNECTED!");
-				self.setLogged(false);
-				//$(document).trigger('disconnected');
-			}
-		});
+    conn.connect(data.jid, data.password, function (status) {
+      switch (status) {
+        case Strophe.Status.ERROR:
+          console.log('[Connection] Error');
+          break;
+        case Strophe.Status.CONNECTING:
+          console.log('[Connection] Connecting');
+          break;
+        case Strophe.Status.CONNFAIL:
+          console.log('[Connection] Failed to connect');
+          connectFailed();
+          break;
+        case Strophe.Status.AUTHENTICATING:
+          console.log('[Connection] Authenticating');
+          break;
+        case Strophe.Status.AUTHFAIL:
+          console.log('[Connection] Unauthorized');
+          break;
+        case Strophe.Status.CONNECTED:
+          connection = conn;
+          console.log("CONNECTED!");
+          self.setLogged(true,data.jid);
+          self.connected();
+          Chats.reset();
+          break;
+        case Strophe.Status.DISCONNECTED:
+          console.log('[Connection] Disconnected');
+          break;
+        case Strophe.Status.DISCONNECTING:
+          connection = conn;
+          console.log("DISCONNECTED!");
+          self.setLogged(false);
+          //$(document).trigger('disconnected');
+          console.log('[Connection] Disconnecting');
+          break;
+        case Strophe.Status.ATTACHED:
+          console.log('[Connection] Attached');
+          break;
+      }
+    })
 	};
 	
 	this.reconnect = function (jid) {
