@@ -5,22 +5,22 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
     <title></title>
 	
-	<!-- Good default declaration for Content-Security-Policy:
+ <!-- Good default declaration for Content-Security-Policy:
     * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
     * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
     * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
         * Enable inline JS: add 'unsafe-inline' to default-src
         * Enable eval(): add 'unsafe-eval' to default-src
-	-->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com localhost:7070 localhost:35729 paulovitorjp.com:7070 paulovitorjp.com:7443 ws:; style-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src *">
-	<!-- Allow requests to localhost -->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 paulovitorjp.com:7070 paulovitorjp.com:7443  ws:">
-	<!-- Enable all requests, inline styles, and eval() -->
-	<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval';">
-	<!-- Allow XHRs via https only -->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: localhost:7070 localhost:35729 paulovitorjp.com:7070 paulovitorjp.com:7443 ws:">
-	<!-- Allow iframe to https://cordova.apache.org/ -->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 paulovitorjp.com:7070 paulovitorjp.com:7443 ws:; frame-src 'self' https://cordova.apache.org">
+        -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com localhost:7070 localhost:35729 paulovitorjp.com:7070 ws:; style-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src *; connect-src 'self' http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 localhost:7070 localhost:35729 paulovitorjp.com:7070 http://paulovitorjp.com:8000/; img-src 'self' http://paulovitorjp.com:8000/ ">
+        <!-- Allow requests to localhost -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com:8000/ ws:">
+        <!-- Enable all requests, inline styles, and eval() -->
+        <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval';">
+        <!-- Allow XHRs via https only -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com:8000/ ws:">
+        <!-- Allow iframe to https://cordova.apache.org/ -->
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com:8000/ ws:; frame-src 'self' https://cordova.apache.org">
 
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">

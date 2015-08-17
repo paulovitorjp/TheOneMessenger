@@ -7,27 +7,45 @@
 <ion-view view-title="{{chat.name}}">
   <ion-content class="padding">
     <div id="scrollDiv">
-    <ion-list>
-	<div class="card" ng-repeat="msg in chat.msgs">
-	<!-- from them -->
-      <ion-item ng-if="msg.type != 'composing' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
-        <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-		<p class="text-wrap">{{msg.content}}</p>
-		<span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-	  </ion-item>
-	  <!-- from you -->
-	  <ion-item ng-if="msg.type != 'composing' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
-		<img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-		<p class="text-wrap">{{msg.content}}</p>
-		<span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-	  </ion-item>
-	  <!-- is typing... -->
-	  <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
-	</div>
-    </ion-list>
-	<br> <!--so that last message doesn't stay behind the footer-->
-	<a id="bottom"></a>
-	</div>
+      <ion-list>
+	      <div class="card" ng-repeat="msg in chat.msgs">
+	        <!-- from them -->
+          <ion-item ng-if="msg.type == 'text' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
+            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+		        <p class="text-wrap">{{msg.content}}</p>
+		        <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+	        </ion-item>
+	        <!-- from you -->
+	        <ion-item ng-if="msg.type == 'text' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
+		        <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+		        <p class="text-wrap">{{msg.content}}</p>
+		        <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+	        </ion-item>
+          <!-- image type: Me -->
+          <ion-item ng-if="msg.type != 'composing' && msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
+            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+            <!-- <p class="text-wrap">{{msg.content}}</p> -->
+            <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+            <div-class="item item-body">
+              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
+            </div>
+          </ion-item>
+          <!-- image type: Others -->
+          <ion-item ng-if="msg.type != 'composing' && msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
+            <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+            <!-- <p class="text-wrap">{{msg.content}}</p> -->
+            <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+            <div-class="item item-body">
+              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
+            </div>
+          </ion-item>
+	        <!-- is typing... -->
+	        <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
+	      </div>
+      </ion-list>
+	    <br> <!--so that last message doesn't stay behind the footer-->
+	    <a id="bottom"></a>
+	  </div>
   <!-- <ion-content class="padding" ng-controller="AudioCtrl"> -->
     <!-- <ion-audio-track ng-repeat="track in tracks" track="track">
       <div class="card">
@@ -51,6 +69,6 @@
 	  <label class="item-input-wrapper">
       <input ng-keypress="enter($event)" type="text" ng-model="textMessage" placeholder="Digite sua mensagem aqui...">
     </label>
-	<button ng-click="send()" id="send" class="button positive button-icon ion-android-send" ></button>
+	  <button ng-click="send()" id="send" class="button positive button-icon ion-android-send" ></button>
   </div>
 </ion-view>

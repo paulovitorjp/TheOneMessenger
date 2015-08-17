@@ -118,11 +118,38 @@ angular.module('starter.services', [])
 			  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
 			  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
 			  var type = 'text'; // change this to a if that reads the content of the message looking for the type of file
-			  var msg = {type: type, content: message, time: fullTime, from: from};
-			  chats[i].msgs.push(msg);
-			  chats[i].lastText = message;
-			  chats[i].lastType = type;
-			  chats[i].time = fullTime;//sets the time of last msg received for display in the chats tab
+
+      
+        var audio_re = /\[audio:(.*)\]/g;
+        var image_re = /\[image:(.*)\]/g;
+        
+        if (audio_re.test(message)) {
+          console.log("audio regexp");
+          var message = message.replace(audio_re, "$1");
+          var type = "audio";
+          var msg = {type: type, content: message, time: fullTime, from: from};
+          chats[i].msgs.push(msg);
+          chats[i].lastText = message;
+          chats[i].lastType = type;
+          chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
+        } else if (image_re.test(message)) {
+            console.log("image regexp");
+            var message = message.replace(image_re, "$1");
+            var type = "image";
+            var msg = {type: type, content: message, time: fullTime, from: from};
+            chats[i].msgs.push(msg);
+            chats[i].lastText = message;
+            chats[i].lastType = type;
+            chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab            
+        } else {
+            console.log("not regexp");
+            var msg = {type: type, content: message, time: fullTime, from: from};
+            chats[i].msgs.push(msg);
+            chats[i].lastText = message;
+            chats[i].lastType = type;
+            chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
+        }
+       
 			  if(currentChat != chats[i].jid) {
 				  chats[i].unread++;
 			  }

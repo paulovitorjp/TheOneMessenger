@@ -135,7 +135,7 @@ angular.module('starter.controllers', [])
       function(res) {
         success = JSON.stringify(res);
         // Success
-        Chats.addMessage($scope.chat.jid, "[Audio: " + res + "]", 'me');
+        Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me');
         console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
