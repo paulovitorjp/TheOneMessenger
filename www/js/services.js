@@ -107,7 +107,7 @@ angular.module('starter.services', [])
 		  if (chats[i].jid == chat) {
 			  //chats[i].status = 'online';
 			  if(chats[i].msgs.length>=1 && chats[i].msgs[chats[i].msgs.length-1].type=='composing') {
-				  chats[i].msgs.pop();
+				  chats[i].msgs.pop(); // removes 'composing' status
 			  }
 			  var now = new Date();
 			  var day = (now.getDate()<10)?'0'+now.getDate():now.getDate(); //adds left zero
@@ -120,35 +120,28 @@ angular.module('starter.services', [])
 			  var type = 'text'; // change this to a if that reads the content of the message looking for the type of file
 
       
-        var audio_re = /\[audio:(.*)\]/g;
-        var image_re = /\[image:(.*)\]/g;
-        
-        if (audio_re.test(message)) {
-          console.log("audio regexp");
-          var message = message.replace(audio_re, "$1");
-          var type = "audio";
-          var msg = {type: type, content: message, time: fullTime, from: from};
-          chats[i].msgs.push(msg);
-          chats[i].lastText = message;
-          chats[i].lastType = type;
-          chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
-        } else if (image_re.test(message)) {
-            console.log("image regexp");
-            var message = message.replace(image_re, "$1");
-            var type = "image";
-            var msg = {type: type, content: message, time: fullTime, from: from};
-            chats[i].msgs.push(msg);
-            chats[i].lastText = message;
-            chats[i].lastType = type;
-            chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab            
-        } else {
-            console.log("not regexp");
-            var msg = {type: type, content: message, time: fullTime, from: from};
-            chats[i].msgs.push(msg);
-            chats[i].lastText = message;
-            chats[i].lastType = type;
-            chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
-        }
+			  var audio_re = /\[audio:(.*)\]/g;
+			  var image_re = /\[image:(.*)\]/g;
+			  
+			  if (audio_re.test(message)) {//tests whether the message is audio, image or text..
+			    console.log("audio regexp");
+			    var message = message.replace(audio_re, "$1");
+			    var type = "audio";
+				chats[i].lastText = 'Áudio';  
+			  } else if (image_re.test(message)) {
+			  	console.log("image regexp");
+			  	var message = message.replace(image_re, "$1");
+			  	var type = "image";
+			  	chats[i].lastText = 'Imagem';         
+			  } else {
+			  	console.log("not regexp");
+			  	chats[i].lastText = message;
+			  }
+			  
+			  var msg = {type: type, content: message, time: fullTime, from: from};
+			  chats[i].msgs.push(msg);
+			  chats[i].lastType = type;
+			  chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
        
 			  if(currentChat != chats[i].jid) {
 				  chats[i].unread++;
@@ -158,9 +151,7 @@ angular.module('starter.services', [])
 				chatsScope.$apply();
 			  }
 			  $rootScope.$broadcast('newMsg', {data: 'something'});
-			  //var elem = document.getElementById('scrollDiv');
-			  //elem.scrollTop = elem.scrollHeight;
-			  //$("#scrollDiv").scrollTop = $("#scrollDiv").scrollHeight;
+
 			  break;
 		  }
 	  }
@@ -257,46 +248,48 @@ angular.module('starter.services', [])
 	
 	this.connect = function (ev, data) {
 		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
-    conn.connect(data.jid, data.password, function (status) {
-      switch (status) {
-        case Strophe.Status.ERROR:
-          console.log('[Connection] Error');
-          break;
-        case Strophe.Status.CONNECTING:
-          console.log('[Connection] Connecting');
-          break;
-        case Strophe.Status.CONNFAIL:
-          console.log('[Connection] Failed to connect');
-          connectFailed();
-          break;
-        case Strophe.Status.AUTHENTICATING:
-          console.log('[Connection] Authenticating');
-          break;
-        case Strophe.Status.AUTHFAIL:
-          console.log('[Connection] Unauthorized');
-          break;
-        case Strophe.Status.CONNECTED:
-          connection = conn;
-          console.log("CONNECTED!");
-          self.setLogged(true,data.jid);
-          self.connected();
-          Chats.reset();
-          break;
-        case Strophe.Status.DISCONNECTED:
-          console.log('[Connection] Disconnected');
-          break;
-        case Strophe.Status.DISCONNECTING:
-          connection = conn;
-          console.log("DISCONNECTED!");
-          self.setLogged(false);
-          //$(document).trigger('disconnected');
-          console.log('[Connection] Disconnecting');
-          break;
-        case Strophe.Status.ATTACHED:
-          console.log('[Connection] Attached');
-          break;
-      }
-    })
+		conn.connect(data.jid, data.password, function (status) {
+		  switch (status) {
+			case Strophe.Status.ERROR:
+			  console.log('[Connection] Error');
+			  break;
+			case Strophe.Status.CONNECTING:
+			  console.log('[Connection] Connecting');
+			  break;
+			case Strophe.Status.CONNFAIL:
+			  console.log('[Connection] Failed to connect');
+			  connectFailed();
+			  break;
+			case Strophe.Status.AUTHENTICATING:
+			  console.log('[Connection] Authenticating');
+			  break;
+			case Strophe.Status.AUTHFAIL:
+			  console.log('[Connection] Unauthorized');
+			  break;
+			case Strophe.Status.CONNECTED:
+			  connection = conn;
+			  console.log("[Connection] CONNECTED");
+			  self.setLogged(true,data.jid);
+			  self.connected();
+			  Chats.reset();
+			  break;
+			case Strophe.Status.DISCONNECTED:
+			  connection = conn;
+			  self.setLogged(false);
+			  console.log('[Connection] DISCONNECTED');
+			  break;
+			case Strophe.Status.DISCONNECTING:
+			  console.log('[Connection] Disconnecting');
+			  break;
+			case Strophe.Status.ATTACHED:
+			  connection = conn;
+			  self.setLogged(true,jid);
+			  self.connected();
+			  Chats.reset();
+			  console.log('[Connection] RECONNECTED');
+			  break;
+		  }
+		});
 	};
 	
 	this.reconnect = function (jid) {
@@ -304,29 +297,48 @@ angular.module('starter.services', [])
 		  
 		  //first tries to restore a previous connection
 		try {
-		conn.restore(jid, function (status) {
-			if (status === Strophe.Status.CONNECTED) {
-				connection = conn;
-				console.log("CONNECTED");
-				self.setLogged(true,jid);
-				self.connected();
-				//self.presence();
-				Chats.reset();
-				//$(document).trigger('connected');
-			} else if (status === Strophe.Status.DISCONNECTED) {
-				connection = conn;
-				console.log("DISCONNECTED!");
-				self.setLogged(false);
-				//$(document).trigger('disconnected');
-			} else if (status === Strophe.Status.ATTACHED){
-				connection = conn;
-				console.log("RECONNECTED");
-				self.setLogged(true,jid);
-				self.connected();
-				Chats.reset();
-				//self.presence();
-			}
-		});
+			conn.restore(jid, function (status) {
+				switch (status) {
+					case Strophe.Status.ERROR:
+					  console.log('[Connection] Error');
+					  break;
+					case Strophe.Status.CONNECTING:
+					  console.log('[Connection] Connecting');
+					  break;
+					case Strophe.Status.CONNFAIL:
+					  console.log('[Connection] Failed to connect');
+					  connectFailed();
+					  break;
+					case Strophe.Status.AUTHENTICATING:
+					  console.log('[Connection] Authenticating');
+					  break;
+					case Strophe.Status.AUTHFAIL:
+					  console.log('[Connection] Unauthorized');
+					  break;
+					case Strophe.Status.CONNECTED:
+					  connection = conn;
+					  console.log("[Connection] CONNECTED");
+					  self.setLogged(true,jid);
+					  self.connected();
+					  Chats.reset();
+					  break;
+					case Strophe.Status.DISCONNECTED:
+					  connection = conn;
+					  self.setLogged(false);
+					  console.log('[Connection] DISCONNECTED');
+					  break;
+					case Strophe.Status.DISCONNECTING:
+					  console.log('[Connection] Disconnecting');
+					  break;
+					case Strophe.Status.ATTACHED:
+					  connection = conn;
+					  self.setLogged(true,jid);
+					  self.connected();
+					  Chats.reset();
+					  console.log('[Connection] RECONNECTED');
+					  break;
+				}
+			});
 		} catch(e) {//TODO here the login popup should open again
 			console.log("COULD NOT RESTORE CONNECTION.");
 			self.setLogged(false);
@@ -341,10 +353,6 @@ angular.module('starter.services', [])
 		$(iq).find('item').each(function () {
             var jid = $(this).attr('jid');
             var name = $(this).attr('name') || jid;
-
-            // transform jid into an id
-            //var jid_id = Gab.jid_to_id(jid);
-			
 			var contact = {
 				jid: jid,
 				name: name,
@@ -380,7 +388,6 @@ angular.module('starter.services', [])
 		var message = $msg({to: jid, "type": "chat"}).c('body').t(body).up()
                 .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
         connection.send(message);
-		console.log("on_roster_changed...");
 		return true;
 	};
 	
@@ -388,23 +395,7 @@ angular.module('starter.services', [])
 		//
 		console.log("on_message arrived...");
 		console.log(message);
-		/**
-		var full_jid = $(message).attr('from');
-        var jid = Strophe.getBareJidFromJid(full_jid);
-        var jid_id = Gab.jid_to_id(jid);
 
-        if ($('#chat-' + jid_id).length === 0) {
-            $('#chat-area').tabs('add', '#chat-' + jid_id, jid);
-            $('#chat-' + jid_id).append(
-                "<div class='chat-messages'></div>" +
-                "<input type='text' class='chat-input'>");
-        }
-        
-        $('#chat-' + jid_id).data('jid', full_jid);
-
-        $('#chat-area').tabs('select', '#chat-' + jid_id);
-        $('#chat-' + jid_id + ' input').focus();
-		**/
 		var full_jid = $(message).attr('from');
 		var jid = full_jid.substring(0,full_jid.indexOf('/'));
         var composing = $(message).find('composing');
@@ -424,37 +415,10 @@ angular.module('starter.services', [])
             }
         } else {
             body = body.contents();
-
-            /**var span = $("<span></span>");
-            body.each(function () {
-                if (document.importNode) {
-                    $(document.importNode(this, true)).appendTo(span);
-                } else {
-                    // IE workaround
-                    span.append(this.xml);
-                }
-            });
-
-            body = span;**/
         }
 
         if (body) {
-            // remove notifications since user is now active
-            //$('#chat-' + jid_id + ' .chat-event').remove();
-
-            // add the new message
-        /**    $('#chat-' + jid_id + ' .chat-messages').append(
-                "<div class='chat-message'>" +
-                "&lt;<span class='chat-name'>" +
-                Strophe.getNodeFromJid(jid) +
-                "</span>&gt;<span class='chat-text'>" +
-                "</span></div>");
-
-            $('#chat-' + jid_id + ' .chat-message:last .chat-text')
-                .append(body);
-
-            Gab.scroll_chat(jid_id);**/
-			Chats.addMessage(jid,body,jid);//(qual chat, conteudo, tipo, remetente)
+			Chats.addMessage(jid,body,jid);//(qual chat, conteudo, remetente)
         }		
 		
 		return true;
@@ -491,10 +455,6 @@ angular.module('starter.services', [])
 			console.log(jid + " is " + status);
 			Chats.setStatus(jid,status);
         }
-
-        // reset addressing for user since their presence changed
-        //var jid_id = Gab.jid_to_id(from);
-        //$('#chat-' + jid_id).data('jid', Strophe.getBareJidFromJid(from));
 
         return true;
 	};
