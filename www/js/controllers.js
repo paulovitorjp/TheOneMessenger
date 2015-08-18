@@ -11,7 +11,7 @@ angular.module('starter.controllers', [])
 	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
+			user.jid = user.jid + "@localhost"; //change to paulovitorjp.com
 			$strophe.connect('connect', {
                     jid: user.jid,
                     password: user.password
@@ -56,12 +56,18 @@ angular.module('starter.controllers', [])
     Chats.remove(chat);
   };
   Chats.setChatsScope($scope);
+/*   $scope.$on('newStatus',function(event, data) {
+	  $scope.chats
+	  console.log("update");
+  }); */
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $ionicScrollDelegate, $strophe) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
+  $scope.composing = false;
   Chats.setCurrent($stateParams.chatId);
+  $ionicScrollDelegate.scrollBottom(false);
   $scope.$on('newMsg',function(event, data) {
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
@@ -87,7 +93,16 @@ angular.module('starter.controllers', [])
   });
   $scope.enter = function(ev) {
 	  if(ev.which == 13) {//verifica se foi um enter
+		  $scope.composing = false;
 		  $scope.send();
+	  } else if ((ev.which == 8 || ev.which == 46) && $scope.textMessage == '') {//if (backspace or del) and text empty
+		  //TODO send NOT composing, if possible
+			console.log("Send not composing...");
+	  } else {
+		  if(!$scope.composing) {
+			  $scope.composing = true;
+			  $strophe.send_composing($scope.chat.jid);
+		  }
 	  }
   };
   $scope.send = function() {

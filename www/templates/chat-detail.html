@@ -12,6 +12,7 @@
 	      <!-- text type: Others -->
           <ion-item ng-if="msg.type == 'text' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
 				<img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+				<span ng-if="chat.is_room">{{msg.from}}</span>
 		        <p class="text-wrap">{{msg.content}}</p>
 		        <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
 	      </ion-item>
@@ -24,17 +25,18 @@
           <!-- image type: Others -->
           <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+			<span ng-if="chat.is_room">{{msg.from}}</span>
+			<img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}"></img>
             <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
           </ion-item>
 		  <!-- image type: Me -->
           <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+			<img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}"></img>
             <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
           </ion-item>
-	      <!-- is typing... -->
-	        <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
+	      <!-- composing or notification -->
+	        <span class="composing" ng-if="msg.type == 'composing' || msg.type == 'notification'"><i>{{msg.content}}</i></span>
 	      </div>
       </ion-list>
 	  <br> <!--so that last message doesn't stay behind the footer-->
