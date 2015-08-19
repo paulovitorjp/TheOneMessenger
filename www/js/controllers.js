@@ -39,7 +39,20 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('DashCtrl', function($scope) {	
+.controller('DashCtrl', function($scope, Dashboard, Chats) {
+	$scope.cards = Dashboard.all();
+	$scope.$on('updateDashboard',function(event, data) {
+		$scope.$digest();
+	});	
+	$scope.remove = function(card) {
+		Dashboard.remove(card);
+	};
+	$scope.accept = function(jid) {
+		console.log('You accepted ' + jid + '\'s invitation');
+	}
+	$scope.cancel = function(jid) {
+		console.log('You denied ' + jid + '\'s invitation');
+	}
 })
 
 .controller('ChatsCtrl', function($scope, Chats, $strophe) {
@@ -49,17 +62,16 @@ angular.module('starter.controllers', [])
   // listen for the $ionicView.enter event:
   //
   //$scope.$on('$ionicView.enter', function(e) {
+  //  $ionicScrollDelegate.scrollBottom(false);
   //});
   Chats.setCurrent(null);
   $scope.chats = Chats.all();
   $scope.remove = function(chat) {
     Chats.remove(chat);
   };
-  Chats.setChatsScope($scope);
-/*   $scope.$on('newStatus',function(event, data) {
-	  $scope.chats
-	  console.log("update");
-  }); */
+  $scope.$on('updateChats',function(event, data) {
+	  $scope.$digest();
+  });
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $ionicScrollDelegate, $strophe) {
@@ -67,8 +79,11 @@ angular.module('starter.controllers', [])
   $scope.textMessage = '';
   $scope.composing = false;
   Chats.setCurrent($stateParams.chatId);
-  $ionicScrollDelegate.scrollBottom(false);
   $scope.$on('newMsg',function(event, data) {
+	  console.log(data.from);
+	  if(data.from != 'me') {
+		 $scope.$digest();
+	  }
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
   });
@@ -98,7 +113,7 @@ angular.module('starter.controllers', [])
 	  } else if ((ev.which == 8 || ev.which == 46) && $scope.textMessage == '') {//if (backspace or del) and text empty
 		  //TODO send NOT composing, if possible
 			console.log("Send not composing...");
-	  } else {
+	  } else if (!$scope.chat.is_room){ //does not send composing to rooms...
 		  if(!$scope.composing) {
 			  $scope.composing = true;
 			  $strophe.send_composing($scope.chat.jid);
@@ -113,6 +128,9 @@ angular.module('starter.controllers', [])
 		  $scope.textMessage = '';
 	  }
   };
+  $scope.$on('$ionicView.enter', function(e) {
+    $ionicScrollDelegate.scrollBottom(false);
+  });
 })
 
 .controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage) {
@@ -124,6 +142,7 @@ angular.module('starter.controllers', [])
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
 	  $localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
+	  $strophe.disconnect();
 	  location.reload();
   }
   $scope.showLogoffPopup = function() {
