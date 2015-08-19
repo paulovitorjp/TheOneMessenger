@@ -9,6 +9,7 @@ angular.module('starter.controllers', [])
 			scope: $scope
 		});
 	};
+
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
 			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
@@ -58,7 +59,9 @@ angular.module('starter.controllers', [])
   Chats.setChatsScope($scope);
 })
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $ionicScrollDelegate, $strophe) {
+.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
+	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, 
+	                                   $timeout, $localstorage,$cordovaFileOpener2) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   Chats.setCurrent($stateParams.chatId);
@@ -74,6 +77,52 @@ angular.module('starter.controllers', [])
   }).then(function(popover) {
     $scope.popover = popover;
   });
+
+  $scope.fullscreen = function(imageSrc){
+
+  	var localimage = $localstorage.getObject(imageSrc);
+
+    if ( JSON.stringify(localimage) == '{}') {
+  	  
+  	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
+      var targetPath = cordova.file.dataDirectory + imageSrc;
+      var options = {};
+      var trustHosts = true;
+      
+      console.log("url:" + url + "\ntargetPath:" + targetPath);
+      
+      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+        .then(function(result) {
+          // Success 	
+      	  $localstorage.setObject(imageSrc, targetPath);
+      	  console.log("Download Success: " + targetPath + "\n" + result);
+      	  $cordovaFileOpener2.open(targetPath,'image/jpeg')
+      
+        }, function(err) {
+          // Error
+      	  console.log("Download Failed!" + JSON.stringify(err));
+      
+        }, function (progress) {
+          $timeout(function () {
+          $scope.downloadProgress = (progress.loaded / progress.total) * 100;
+        })
+      });   
+      
+    } else {
+
+
+        console.log("localimage: " + localimage);
+
+          $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
+          // file opened successfully
+          console.log("File opened!");
+        }, function(err) {
+          // An error occurred. Show a message to the user
+          console.log("Open failed." + JSON.stringify(err));
+    });
+      }
+  };
+
   $scope.openPopover = function($event) {
 	console.log("Abriu Popover.");
     $scope.popover.show($event);
@@ -126,85 +175,16 @@ angular.module('starter.controllers', [])
 
 .controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
   $scope.uploadImage = function(type) {
-    Upload.fileTo("http://paulovitorjp.com:8000", type).then(
+    Upload.fileTo("http://paulovitorjp.com/image_upload_script.php", type).then(
       function(res) {
         success = JSON.stringify(res);
         // Success
-		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
-        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
+		// $strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
+        Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
         console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
         console.log("[UploadCtrl] Error: " + err);
       });
-  };
-})
-
-.controller('AudioCtrl', function($scope, $cordovaCapture, $cordovaFileTransfer) {
-
-  $scope.tracks = [
-        {
-            url: 'http://paulovitorjp.com:8000/audio_005.wav',
-            artist: 'Mensagem de audio',
-            title: 'Paulo Victor Maluf',
-            art: 'img/maluf.jpg'
-        },
-    ],
-
-  $scope.uploadAudio = function(filepath, name, mime){
-    console.log("uploadAudio");
-
-    var url = "http://paulovitorjp.com:8000";
-    var options = {
-          fileKey: 'upfile',
-          fileName: name,
-          chunkedMode: true,
-          mimeType: mime
-    };
-    console.log(options + " " + filepath);
-
-    if (filepath){
-      $cordovaFileTransfer.upload(url, filepath, options).then(function(result) {
-        console.log("SUCCESS: " + result.response);
-        }, function(err) {
-             console.log("ERROR: " + err);
-        });
-    }
-  };
-
-  $scope.captureAudio = function() {
-    var options = { limit: 1, duration: 10 };
-
-    $cordovaCapture.captureAudio(options).then(function(mediaFiles) {
-      console.log("Success! Audio data is here");
-      var i, path, name, mime, len;
-      for (i = 0, len = mediaFiles.length; i < len; i += 1) {
-          path = mediaFiles[i].fullPath;
-          name = mediaFiles[i].name;
-          mime = mediaFiles[i].type;
-          console.log("Loop: " + i + " Path: " + path + " Name: " + name + " Mime: " + mime);
-          $scope.uploadAudio(path, name, mime);
-      }
-    },
-    function(err){
-      switch (err) {
-        case CaptureError.CAPTURE_NO_MEDIA_FILES:
-          navigator.notification.alert('no media files', null);
-          console.log('no media files');
-          break;
-        case CaptureError.CAPTURE_INTERNAL_ERR:
-          navigator.notification.alert('internal err', null);
-          console.log('internal err');
-          break;
-        case CaptureError.CAPTURE_INVALID_ARGUMENT:
-          navigator.notification.alert('invalid arg', null);
-          console.log('invalid arg');
-          break;
-        case CaptureError.CAPTURE_NOT_SUPPORTED:
-          navigator.notification.alert('not supported', null);
-          console.log('not supported');
-          break;
-      }
-    });
   };
 });

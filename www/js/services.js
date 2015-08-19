@@ -460,7 +460,7 @@ angular.module('starter.services', [])
 	};
 })
 
-.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer) {
+.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage) {
   
     function makeid() {
       var text = '';
@@ -494,23 +494,18 @@ angular.module('starter.services', [])
           encodingType: Camera.EncodingType.JPEG,
           popoverOptions: CameraPopoverOptions,
           saveToPhotoAlbum: false,
-          quality: 100
+          quality: 100,
         }
 
         $cordovaCamera.getPicture(options).then(
 
           function(fileURL) {
-
             var uploadOptions = new FileUploadOptions();
             uploadOptions.fileKey = "upfile";
             uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1);
             uploadOptions.mimeType = "image/jpeg";
             uploadOptions.chunkedMode = false;
-
-            var test = fileURL.type ; 
-
-            console.log("file type: " + test);
-
+            
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
                 deferred.resolve(uploadOptions.fileName);

@@ -25,13 +25,13 @@
           <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
             <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
+              <img class="full-image" ng-src="http://paulovitorjp.com/uploads/resized_{{msg.content}}">
           </ion-item>
 		  <!-- image type: Me -->
-          <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message">
+          <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message" ng-click="fullscreen(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
             <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com:8000/{{msg.content}}">
+              <img class="full-image" ng-src="http://paulovitorjp.com/uploads/resized_{{msg.content}}">
           </ion-item>
 	      <!-- is typing... -->
 	        <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>
