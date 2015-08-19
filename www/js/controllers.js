@@ -109,17 +109,14 @@ angular.module('starter.controllers', [])
       });   
       
     } else {
-
-
         console.log("localimage: " + localimage);
-
-          $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
+        $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
           // file opened successfully
           console.log("File opened!");
         }, function(err) {
           // An error occurred. Show a message to the user
           console.log("Open failed." + JSON.stringify(err));
-    });
+        });
       }
   };
 
