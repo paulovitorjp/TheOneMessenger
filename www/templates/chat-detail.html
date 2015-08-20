@@ -22,16 +22,16 @@
 		        <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
 	      </ion-item>
           <!-- image type: Others -->
-          <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar">
+          <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar" ng-click="fullscreen(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-            <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com/uploads/resized_{{msg.content}}">
+            <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{resized_{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+              <img class="full-image" ng-src="{{thumbnail(msg.content)}}">
           </ion-item>
 		  <!-- image type: Me -->
-          <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message" ng-click="fullscreen(msg.content)">
+          <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message" ng-click="fullscreen(msg.content)" ng-init="thumbnail(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
             <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
-              <img class="full-image" ng-src="http://paulovitorjp.com/uploads/resized_{{msg.content}}">
+              <img class="full-image" ng-src="{{thumbnail(msg.content)}}">
           </ion-item>
 	      <!-- is typing... -->
 	        <span class="composing" ng-if="msg.type == 'composing'"><i>{{msg.content}}</i></span>

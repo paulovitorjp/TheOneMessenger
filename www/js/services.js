@@ -102,6 +102,7 @@ angular.module('starter.services', [])
 		  }
 	  }
 	},
+
 	addMessage: function(chat, message, from) {
 		for (var i=0;i<chats.length;i++) {
 		  if (chats[i].jid == chat) {
@@ -460,7 +461,7 @@ angular.module('starter.services', [])
 	};
 })
 
-.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage) {
+.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage, $timeout, $ionicLoading) {
   
     function makeid() {
       var text = '';
@@ -500,18 +501,41 @@ angular.module('starter.services', [])
         $cordovaCamera.getPicture(options).then(
 
           function(fileURL) {
-            var uploadOptions = new FileUploadOptions();
+          	var uploadOptions = new FileUploadOptions();
             uploadOptions.fileKey = "upfile";
-            uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1);
+            uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1).replace('%','');
             uploadOptions.mimeType = "image/jpeg";
             uploadOptions.chunkedMode = false;
-            
+
+            uploadOptions.fileName = uploadOptions.fileName.split(".");
+            uploadOptions.fileName = uploadOptions.fileName[0]+".jpg";
+
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
+              	$ionicLoading.hide();
                 deferred.resolve(uploadOptions.fileName);
               }, function(err) {
+              	$ionicLoading.show({
+                     content: 'Falha no envio da imagem.',
+                     animation: 'fade-in',
+                     showBackdrop: true,
+                     maxWidth: 200,
+                     showDelay: 1000
+                });
                 deferred.reject(err);
-              });
+                $ionicLoading.show();
+              }, function (progress) {
+              	   $ionicLoading.show({
+                     content: 'Enviando...',
+                     animation: 'fade-in',
+                     showBackdrop: true,
+                     maxWidth: 200,
+                     showDelay: 1000
+                   });
+                   $timeout(function () {
+                     downloadProgress = (progress.loaded / progress.total) * 100;
+                   })
+                 });
           }, function(err){
             deferred.reject(err);
           });

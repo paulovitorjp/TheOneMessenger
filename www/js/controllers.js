@@ -61,7 +61,7 @@ angular.module('starter.controllers', [])
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
 	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, 
-	                                   $timeout, $localstorage,$cordovaFileOpener2) {
+	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   Chats.setCurrent($stateParams.chatId);
@@ -77,48 +77,6 @@ angular.module('starter.controllers', [])
   }).then(function(popover) {
     $scope.popover = popover;
   });
-
-  $scope.fullscreen = function(imageSrc){
-
-  	var localimage = $localstorage.getObject(imageSrc);
-
-    if ( JSON.stringify(localimage) == '{}') {
-  	  
-  	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
-      var targetPath = cordova.file.dataDirectory + imageSrc;
-      var options = {};
-      var trustHosts = true;
-      
-      console.log("url:" + url + "\ntargetPath:" + targetPath);
-      
-      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
-        .then(function(result) {
-          // Success 	
-      	  $localstorage.setObject(imageSrc, targetPath);
-      	  console.log("Download Success: " + targetPath + "\n" + result);
-      	  $cordovaFileOpener2.open(targetPath,'image/jpeg')
-      
-        }, function(err) {
-          // Error
-      	  console.log("Download Failed!" + JSON.stringify(err));
-      
-        }, function (progress) {
-          $timeout(function () {
-          $scope.downloadProgress = (progress.loaded / progress.total) * 100;
-        })
-      });   
-      
-    } else {
-        console.log("localimage: " + localimage);
-        $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
-          // file opened successfully
-          console.log("File opened!");
-        }, function(err) {
-          // An error occurred. Show a message to the user
-          console.log("Open failed." + JSON.stringify(err));
-        });
-      }
-  };
 
   $scope.openPopover = function($event) {
 	console.log("Abriu Popover.");
@@ -139,10 +97,102 @@ angular.module('starter.controllers', [])
   $scope.send = function() {
 	  if($scope.textMessage != '') { // só envia se realmente tem msg
 		  console.log($scope.textMessage);
-		  $strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
-		  //Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
+		  //$strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
+		  Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); // essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
 		  $scope.textMessage = '';
 	  }
+  };
+
+  $scope.fullscreen = function(imageSrc){
+
+  	var localimage = $localstorage.getObject(imageSrc);
+
+    if ( JSON.stringify(localimage) == '{}') {
+  	  
+  	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
+      var targetPath = cordova.file.externalDataDirectory + imageSrc;
+      var options = {};
+      var trustHosts = true;
+      
+      console.log("url:" + url + "\ntargetPath:" + targetPath);
+      
+      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+        .then(function(result) {
+          // Success 	
+      	  $localstorage.setObject(imageSrc, targetPath);
+      	  console.log("Download Success: " + targetPath + "\n" + result);
+      	  $cordovaFileOpener2.open(targetPath,'image/jpeg')
+      
+        }, function(err) {
+          // Error
+      	  console.log("Download Failed!" + JSON.stringify(err));
+      
+        }, function (progress) {
+          $ionicLoading.show({
+            content: 'Loading',
+            animation: 'fade-in',
+            showBackdrop: true,
+            maxWidth: 200,
+            showDelay: 0
+          });
+          $timeout(function () {
+            downloadProgress = (progress.loaded / progress.total) * 100;
+            $ionicLoading.hide();
+          })
+      });   
+      
+    } else {
+        console.log("localimage: " + localimage);
+        $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
+          // file opened successfully
+          console.log("File opened!");
+        }, function(err) {
+          // An error occurred. Show a message to the user
+          console.log("Open failed." + JSON.stringify(err));
+        });
+      }
+  };
+
+  $scope.thumbnail = function(thumb){
+
+    var thumbnail = 'thumb_' + thumb; 
+    var localthumb = $localstorage.getObject(thumbnail);
+
+    var url = "http://paulovitorjp.com/uploads/" + thumbnail;
+    var targetPath = cordova.file.externalDataDirectory + thumbnail;
+    var options = {};
+    var trustHosts = true;
+
+    if (JSON.stringify(localthumb) == '{}') {
+  	  
+      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+        .then(function(result) {
+          // Success 	
+          // $ionicLoading.hide();  
+          $localstorage.setObject(thumbnail, targetPath);
+        }, function(err) {
+             // Error
+             // $ionicLoading.show({
+             //     content: 'Falha ao baixar a imagem.',
+             //     animation: 'fade-in',
+             //     showBackdrop: true,
+             //     maxWidth: 200,
+             //     showDelay: 1000
+             //   });
+           }, function (progress) {
+                // $ionicLoading.show({
+                //   content: 'Loading..',
+                //   animation: 'fade-in',
+                //   showBackdrop: true,
+                //   maxWidth: 200,
+                //   showDelay: 1000
+                // });
+                $timeout(function () {
+                  $scope.downloadProgress = (progress.loaded / progress.total) * 100;
+                })
+              });  
+    } 
+    return url;
   };
 })
 
