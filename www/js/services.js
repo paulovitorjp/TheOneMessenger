@@ -56,6 +56,8 @@ angular.module('starter.services', [])
 	msgs: []
   }];
   
+  var rooms = [];
+  
   var chatsScope = null;
   var currentChat = null;
 
@@ -81,6 +83,14 @@ angular.module('starter.services', [])
       }
       return null;
     },
+	getRoom: function(room_id) {
+      for (var i = 0; i < rooms.length; i++) {
+        if (rooms[i].jid == room_id) {
+          return rooms[i];
+        }
+      }
+      return null;
+    },
 	isComposing: function(from) {
 		for (var i=0;i<chats.length;i++) {
 		  if (chats[i].jid == from) {
@@ -93,11 +103,20 @@ angular.module('starter.services', [])
 			  chats[i].msgs.push(msg);
 			  chats[i].lastText = 'está escrevendo...';
 			  chats[i].lastType = 'composing';
-			  chatsScope.$apply();
+			  $rootScope.$apply();
 			  $rootScope.$broadcast('newMsg', {data: 'something'});
 			  //var elem = document.getElementById('scrollDiv');
 			  //elem.scrollTop = elem.scrollHeight;
 			  //document.getElementById('bottom').scrollIntoView();
+			  break;
+		  }
+	  }
+	},
+
+	addParticipant: function(room_id, participant) {
+	  for(var i = 0; i < chats.length; i++) {
+		  if(chats[i].jid == room_id) {
+			  chats[i].participants.unshift(participant);
 			  break;
 		  }
 	  }
@@ -120,22 +139,23 @@ angular.module('starter.services', [])
 			  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
 			  var type = 'text'; // change this to a if that reads the content of the message looking for the type of file
 
-      
 			  var audio_re = /\[audio:(.*)\]/g;
 			  var image_re = /\[image:(.*)\]/g;
 			  
 			  if (audio_re.test(message)) {//tests whether the message is audio, image or text..
 			    console.log("audio regexp");
-			    var message = message.replace(audio_re, "$1");
-			    var type = "audio";
+			    message = message.replace(audio_re, "$1");
+			    type = "audio";
 				chats[i].lastText = 'Áudio';  
 			  } else if (image_re.test(message)) {
 			  	console.log("image regexp");
-			  	var message = message.replace(image_re, "$1");
-			  	var type = "image";
+			  	message = message.replace(image_re, "$1");
+			  	type = "image";
 			  	chats[i].lastText = 'Imagem';         
 			  } else {
-			  	console.log("not regexp");
+				if(chats[i].is_room && chat == from) {
+					type = 'notification';
+				}
 			  	chats[i].lastText = message;
 			  }
 			  
@@ -147,9 +167,14 @@ angular.module('starter.services', [])
 			  if(currentChat != chats[i].jid) {
 				  chats[i].unread++;
 			  }
+			  
+			  //puts chat in first place, this way the newest messages will alwys be on top
+			  chats.unshift(chats.splice(i,1)[0]);
+			  //do not use chats[i] after this!! !! !! !! !! !! !! !! !! !! !! !!
+			  
 			  $localstorage.setObject("chats", chats);
 			  if(from!='me') {
-				chatsScope.$apply();
+				$rootScope.$apply();
 			  }
 			  $rootScope.$broadcast('newMsg', {data: 'something'});
 
@@ -162,7 +187,7 @@ angular.module('starter.services', [])
 		  if (chats[i].jid == jid) {
 			  chats[i].status = status;
 			  $localstorage.setObject("chats", chats);
-			  chatsScope.$apply();
+			  $rootScope.$apply();
 			  break;
 		  }
 	  }	  
@@ -173,7 +198,7 @@ angular.module('starter.services', [])
 			if(chats[i].jid == contact.jid) {
 				chats[i].name = contact.name;
 				chats[i].face = contact.face;
-				chats[i].status = contact.status;
+				//chats[i].status = contact.status;
 				//doesn't reset unread nor msgs...
 				found = true;
 				break;
@@ -183,6 +208,23 @@ angular.module('starter.services', [])
 			chats.unshift(contact);
 		}
 		$localstorage.setObject("chats", chats);
+	},
+	insertRoom: function(room) {
+		var found = false;
+		for (i=0;i<rooms.length;i++) { // maybe this is not necessary here since this won't be saved.... or will it?
+			if(rooms[i].jid == room.jid) {
+				rooms[i].name = room.name;
+				rooms[i].face = room.face;
+				//chats[i].status = contact.status;
+				//doesn't reset unread nor msgs...
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			rooms.unshift(room);
+			console.log('Room ' + room.name + ' found...');
+		}
 	},
 	reset: function() {
 		//console.log("reset");//TODO remove this later
@@ -197,7 +239,7 @@ angular.module('starter.services', [])
 			}
 			console.log("chats reset to locally stored version");
 		}
-		chatsScope.$apply();
+		//$rootScope.$apply();
 	}
   };
 })
@@ -206,7 +248,9 @@ angular.module('starter.services', [])
 	
 	var self = this;
 	
-	var BOSH_SERVICE = 'http://paulovitorjp.com:7070/http-bind/';
+	var SERVER_NAME = 'localhost';
+	
+	var BOSH_SERVICE = 'http://' + SERVER_NAME + ':7070/http-bind/';
 
 	var connection = null;
 	
@@ -245,6 +289,7 @@ angular.module('starter.services', [])
 		connection.sendIQ(iq,self.on_roster);
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
 		connection.addHandler(self.on_message,null, "message", "chat");
+		connection.addHandler(self.on_group_message,null, "message", "groupchat");
 	}
 	
 	this.connect = function (ev, data) {
@@ -268,8 +313,8 @@ angular.module('starter.services', [])
 			  console.log('[Connection] Unauthorized');
 			  break;
 			case Strophe.Status.CONNECTED:
-			  connection = conn;
 			  console.log("[Connection] CONNECTED");
+			  connection = conn;
 			  self.setLogged(true,data.jid);
 			  self.connected();
 			  Chats.reset();
@@ -283,11 +328,11 @@ angular.module('starter.services', [])
 			  console.log('[Connection] Disconnecting');
 			  break;
 			case Strophe.Status.ATTACHED:
+			  console.log('[Connection] RECONNECTED');
 			  connection = conn;
 			  self.setLogged(true,jid);
 			  self.connected();
 			  Chats.reset();
-			  console.log('[Connection] RECONNECTED');
 			  break;
 		  }
 		});
@@ -317,26 +362,26 @@ angular.module('starter.services', [])
 					  console.log('[Connection] Unauthorized');
 					  break;
 					case Strophe.Status.CONNECTED:
-					  connection = conn;
 					  console.log("[Connection] CONNECTED");
+					  connection = conn;
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
 					  break;
 					case Strophe.Status.DISCONNECTED:
+					  console.log('[Connection] DISCONNECTED');
 					  connection = conn;
 					  self.setLogged(false);
-					  console.log('[Connection] DISCONNECTED');
 					  break;
 					case Strophe.Status.DISCONNECTING:
 					  console.log('[Connection] Disconnecting');
 					  break;
 					case Strophe.Status.ATTACHED:
+					  console.log('[Connection] RECONNECTED');
 					  connection = conn;
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
-					  console.log('[Connection] RECONNECTED');
 					  break;
 				}
 			});
@@ -353,8 +398,9 @@ angular.module('starter.services', [])
 		//Chats.reset();
 		$(iq).find('item').each(function () {
             var jid = $(this).attr('jid');
-            var name = $(this).attr('name') || jid;
+            var name = $(this).attr('name') || jid.substring(0,jid.indexOf('@'));
 			var contact = {
+				is_room: false,
 				jid: jid,
 				name: name,
 				face: 'img/uesley.jpg',
@@ -376,19 +422,69 @@ angular.module('starter.services', [])
 	this.presence = function() {
 		connection.addHandler(self.on_presence, null, "presence");
         connection.send($pres());
+		//query all rooms
+		var iq = $iq({type: 'get', to: 'conference.'+SERVER_NAME}).c('query', {xmlns: 'http://jabber.org/protocol/disco#items'});
+		connection.sendIQ(iq,self.on_room_list);
+		//Register to all rooms...
+		//connection.send($pres({to: "teste@conference.localhost/" + user.jid.substring(0,user.jid.indexOf('@'))}).c('x', {xmlns: "http://jabber.org/protocol/muc"}));
 	};
 	
-	this.on_roster_changed = function() {
+	this.on_room_list = function(iq) {
+		console.log("On room list...");
+		console.log(iq);
+		
+		$(iq).find('item').each(function () {
+            var jid = $(this).attr('jid');
+            var name = $(this).attr('name') || jid.substring(0,jid.indexOf('@'));
+			var room = {
+				is_room: true,
+				jid: jid,
+				name: name,
+				face: 'img/room.png',
+				status: 'online',
+				unread: 0,
+				lastText: '',
+				lastType: 'composing',
+				time: '',
+				msgs: [],
+				participants: []
+			}
+			//inserts room in a temporary rooms list
+            Chats.insertRoom(room);
+			//sends presence to try to enter room, the response will be receive by on_presence
+			console.log('Sending presence to room ' + jid);
+			connection.send($pres({to: room.jid + '/' + user.jid.substring(0,user.jid.indexOf('@'))}).c('x', {xmlns: "http://jabber.org/protocol/muc"}));
+        });		
+		
+		return true;
+	}
+	
+	this.on_roster_changed = function(iq) {
 		//
 		console.log("on_roster_changed...");
+		console.log(iq);
 		return true;
 	};
 	
 	this.send_message = function(jid, body, from) {
-		Chats.addMessage(jid, body, from);
-		var message = $msg({to: jid, "type": "chat"}).c('body').t(body).up()
+		var message = '';
+		if(jid.indexOf('@conference')!=-1) {
+			message = $msg({to: jid, type: 'groupchat'}).c('body').t(body);
+		}
+		else {
+			message = $msg({to: jid, type: 'chat'}).c('body').t(body).up()
                 .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
-        connection.send(message);
+		}
+		if(message != '') {
+			connection.send(message);
+			Chats.addMessage(jid, body, from);
+		}
+		return true;
+	};
+	
+	this.send_composing = function(jid) {
+		var notify = $msg({to: jid, "type": "chat"}).c('composing', {xmlns: "http://jabber.org/protocol/chatstates"});
+        connection.send(notify);
 		return true;
 	};
 	
@@ -425,37 +521,90 @@ angular.module('starter.services', [])
 		return true;
 	};
 	
+	this.on_group_message = function(message) {
+		//
+		console.log("on_group_message arrived...");
+		console.log(message);
+		var room_id = '';
+		var user_id = '';
+
+		var full_jid = $(message).attr('from'); //gets full jid e.g. master@conferece.paulovitorjp.com/admin
+		var barra = full_jid.indexOf('/'); //gets slash position
+		if(barra!=-1) { //if there's a slash, gets room id and user id
+			room_id = full_jid.substring(0,barra);
+			if(full_jid.length > barra+1) {//checks whether there is something after the slash
+				user_id = full_jid.substring(barra+1, full_jid.length);
+			}
+		} else { // if there isn't a slash gets only room id (it's a room notification)
+			room_id = full_jid;
+			user_id = '';
+		}
+		
+		var body = $(message).children('body').text();
+
+        if (body) {
+			Chats.addMessage(room_id,body,user_id);//(qual chat, conteudo, remetente)
+        }		
+		
+		return true;
+	};
+	
 	this.on_presence = function(presence) {
 		
 		console.log("on_presence arrived...");
+		console.log(presence);
 		
 		var ptype = $(presence).attr('type');
         var from = $(presence).attr('from');
 		var status = "offline";
+		var room_id  = '';
+		var jid = '';
         //var jid_id = Gab.jid_to_id(from);
-
-        if (ptype === 'subscribe') {
-            // populate pending_subscriber, the approve-jid span, and
-            // open the dialog
-            pending_subscriber = from;
-            //$('#approve-jid').text(Strophe.getBareJidFromJid(from));
-            //$('#approve_dialog').dialog('open');
-			//TODO Add an entry to the approval vector
-        } else if (ptype !== 'error') {
-            if (ptype === 'unavailable') {
-                status = "offline";
-            } else {
-                var show = $(presence).find("show").text();
-                if (show === "" || show === "chat") {
-                    status = "online";
-                } else {
-                    status = "away";
-                }
-            }
-			var jid = from.substring(0,from.indexOf('/'));
-			console.log(jid + " is " + status);
-			Chats.setStatus(jid,status);
-        }
+		
+		if(from.indexOf('@conference') != -1) { //if presence from user in a room
+			room_id = from.substring(0,from.indexOf('/'));
+			jid = from.substring(from.indexOf('/')+1, from.length);
+			if (ptype !== 'error') { // if it is not error you have access to the room
+				var room = Chats.getRoom(room_id); // recovers room from temporary array
+				var presence_x = $(presence).find('item');
+				var room_user = null;
+				if(presence_x.length > 0) {
+					presence_x = presence_x[0];
+					var affiliation = $(presence_x).attr('affiliation');
+					var role = $(presence_x).attr('role');
+					room_user = {jid: jid, affiliation: affiliation, role: role};
+				} else {
+					room_user = {jid: jid, affiliation: '', role: ''};
+				}
+				console.log(JSON.stringify(room_user));
+				Chats.insert(room);
+				Chats.addParticipant(room_id, room_user);
+			}
+		} else { //if presence from user
+			if (ptype === 'subscribe') {
+				// populate pending_subscriber, the approve-jid span, and
+				// open the dialog
+				pending_subscriber = from;
+				//$('#approve-jid').text(Strophe.getBareJidFromJid(from));
+				//$('#approve_dialog').dialog('open');
+				//TODO Add an entry to the approval vector
+			} else if (ptype !== 'error') {
+				if (ptype === 'unavailable') {
+					status = "offline";
+				} else {
+					var show = $(presence).find("show").text();
+					if (show === "" || show === "chat") {
+						status = "online";
+					} else {
+						status = "away";
+					}
+				}
+				jid = from.substring(0,from.indexOf('/'));
+				console.log(jid + " is " + status);
+				Chats.setStatus(jid,status);
+			}
+			
+		}
 
         return true;
 	};

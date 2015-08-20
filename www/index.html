@@ -12,6 +12,7 @@
         * Enable inline JS: add 'unsafe-inline' to default-src
         * Enable eval(): add 'unsafe-eval' to default-src
         -->
+
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com localhost:7070 localhost:35729 paulovitorjp.com:7070 ws:; style-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src *; connect-src 'self' http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 localhost:7070 ws: localhost:35729 http://paulovitorjp.com/uploads/; img-src 'self' http://paulovitorjp.com/uploads/ ">
         <!-- Allow requests to localhost -->
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ ws:">
