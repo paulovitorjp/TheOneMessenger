@@ -39,7 +39,7 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('DashCtrl', function($scope, Dashboard, Chats) {
+.controller('DashCtrl', function($scope, Dashboard, Chats, $strophe) {
 	$scope.cards = Dashboard.all();
 	$scope.$on('updateDashboard',function(event, data) {
 		$scope.$digest();
@@ -47,15 +47,23 @@ angular.module('starter.controllers', [])
 	$scope.remove = function(card) {
 		Dashboard.remove(card);
 	};
-	$scope.accept = function(jid) {
-		console.log('You accepted ' + jid + '\'s invitation');
+	$scope.accept = function(card) {
+		//strophe accept subscribe
+		$strophe.accept_subscribe(card.jid);
+		//delete card
+		Dashboard.remove(card);
+		console.log('You accepted ' + card.jid + '\'s invitation');
 	}
-	$scope.cancel = function(jid) {
-		console.log('You denied ' + jid + '\'s invitation');
+	$scope.cancel = function(card) {
+		//strophe accept subscribe
+		$strophe.deny_subscribe(card.jid);
+		//delete card
+		Dashboard.remove(card);
+		console.log('You denied ' + card.jid + '\'s invitation');
 	}
 })
 
-.controller('ChatsCtrl', function($scope, Chats, $strophe) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -66,11 +74,65 @@ angular.module('starter.controllers', [])
   //});
   Chats.setCurrent(null);
   $scope.chats = Chats.all();
+  $scope.user = {jid: '', name: ''} // user to be added
   $scope.remove = function(chat) {
     Chats.remove(chat);
   };
   $scope.$on('updateChats',function(event, data) {
+	  $scope.logged = $strophe.isLogged();
 	  $scope.$digest();
+  });
+  $scope.showAddPopup = function() {
+	$scope.addPopup = $ionicPopup.show({
+		templateUrl: 'templates/add.html',
+		title: 'Adicione um usuário.', 
+		subTitle: 'O usuário só receberá as mensagens enviadas após a aprovação da solicitação.',
+		scope: $scope,
+		buttons: [
+		  { text: 'Cancelar',
+			onTap: function(e) {
+				$scope.user.jid = '';
+				$scope.user.name = '';
+			}
+		  },
+		  {
+			text: 'Adicionar',
+			type: 'button-positive',
+			onTap: function(e) {
+			  if ($scope.user.jid == '') {
+				//don't allow the user to close unless he enters user jid
+				e.preventDefault();
+			  } else {
+				if ($scope.user.name == '') { // if blank name: gets the first part before @ (in case there is one, otherwise uses the jid)
+					if($scope.user.jid.indexOf('@') == -1) {
+						$scope.user.name = $scope.user.jid;
+					} else {
+						$scope.user.name = $scope.user.jid.substring(0,$scope.user.jid.indexOf('@'));
+					}
+				}
+				return $scope.addUser($scope.user);
+			  }
+			}
+		  }
+		]
+	});
+  };
+  $scope.hideAddPopup = function() {
+	$scope.addPopup.close();
+  };
+  $scope.addUser = function(user) {
+	  if(user) {
+		  console.log(user.jid + ' ' + user.name);
+		  $scope.addPopup.close();
+		  $strophe.add_user(user);
+		  user.jid = '';
+		  user.name = '';
+		  return true;
+	  }
+	  return false;
+  };
+  $scope.$on('$ionicView.enter', function(e) {
+    $scope.logged = $strophe.isLogged();
   });
 })
 
@@ -130,6 +192,7 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$ionicView.enter', function(e) {
     $ionicScrollDelegate.scrollBottom(false);
+	Chats.save(); //saves the chats array because the unread messages are now 0...
   });
 })
 
