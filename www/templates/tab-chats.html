@@ -3,9 +3,13 @@
     <ion-list>
 	  <div class="bar bar-header item-input-inset">
 	    <ion-search placeholder="Procurar" filter="search"></ion-search>
+		<button ng-click="showAddPopup()" id="addUser" class="button positive button-icon ion-person-add" ></button>
 	  </div>
-	  <ion-item>Você está offline....</ion-item>
-      <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats | filter:search.value" type="item-text-wrap" href="#/tab/chats/{{chat.jid}}">
+	  <!-- The bar below appears on top of the current header with the search bar and add user button if the user is offline -->
+	  <div ng-if="!logged" id="offline" class="bar bar-header bar-assertive"><h1 class="title">Você está offline...</h1></div>
+	  <div ng-repeat="chat in chats | filter:search.value">
+	  <!-- Below is the normal item for contacts that have accepted your invitation or invited you -->
+      <ion-item ng-if="chat.subscription != 'none'" class="item-remove-animate item-avatar item-icon-right" type="item-text-wrap" href="#/tab/chats/{{chat.jid}}">
         <img ng-src="{{chat.face}}">
         <h2>{{chat.name}}</h2>
         <p>{{chat.lastText}}</p>
@@ -18,9 +22,21 @@
 		<span ng-if="chat.time != ''" class="timestamp">{{chat.time.day}}/{{chat.time.month}}/{{chat.time.year}} {{chat.time.hours}}:{{chat.time.minutes}}</span>
 
         <ion-option-button class="button-assertive" ng-click="remove(chat)">
-          Delete
+          Apagar
         </ion-option-button>
       </ion-item>
+	  <!-- Below is the disabled item for contacts that haven't accepted your invitation -->
+	  <ion-item ng-if="chat.subscription == 'none'" class="item-remove-animate item-avatar item-icon-right" type="item-text-wrap">
+        <img ng-src="{{chat.face}}">
+        <h2>{{chat.name}}</h2>
+        <p>Aguardando autorização</p>
+        <i class="icon ion-chevron-right icon-accessory"></i>
+		<span class="status"><i class="ion-record dark"></i></span>
+        <ion-option-button class="button-assertive" ng-click="remove(chat)">
+          Apagar
+        </ion-option-button>
+      </ion-item>
+	  </div>
     </ion-list>
   </ion-content>
 </ion-view>

@@ -1,39 +1,25 @@
 <ion-view view-title="Dashboard">
   <ion-content class="padding">
-    <div class="list card">
-      <div class="item item-divider">Solicitação de Amizade</div>
+    <div ng-repeat="card in cards" class="list card">
+      <div class="item item-divider">{{card.title}}</div>
       <div class="item item-body">
-        <div>
-          <b>Miguel</b> te adicionou à lista de contatos.
-		  <span class="timestamp">12:00</span>
+        <div ng-if="card.type == 'subscribe'">
+          <b>{{card.name}}</b> te adicionou à lista de contatos.
+		  <span class="timestamp">{{card.time.day}}/{{card.time.month}}/{{card.time.year}} {{card.time.hours}}:{{card.time.minutes}}</span>
+        </div>
+		<div ng-if="card.type == 'broadcast'">
+          {{card.text}}
+		  <span class="timestamp">{{card.time.day}}/{{card.time.month}}/{{card.time.year}} {{card.time.hours}}:{{card.time.minutes}}</span>
         </div>
       </div>
-	  <div class="item item-divider text-right">
-	    <button class="button button-small">
+	  <div ng-if="card.type == 'subscribe'" class="item item-divider text-right">
+	    <button class="button button-small" ng-click="cancel(card)">
           Cancelar
         </button>
-	    <button class="button button-positive button-small">
+	    <button class="button button-positive button-small" ng-click="accept(card)">
           Aceitar
         </button>
 	  </div>
-    </div>
-    <div class="list card">
-      <div class="item item-divider">Comentário de Abertura</div>
-      <div class="item item-body">
-        <div>
-          O comentário de abertura iniciará em 5 minutos.
-		  <span class="timestamp">09:50</span>
-        </div>
-      </div>
-    </div>
-    <div class="list card">
-      <div class="item item-divider">Comentário de Fechamento</div>
-      <div class="item item-body">
-        <div>
-          O comentário de fechamento iniciará em 5 minutos.
-		  <span class="timestamp">Ontem 16:40</span>
-        </div>
-      </div>
     </div>
   </ion-content>
 </ion-view>

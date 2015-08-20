@@ -7,6 +7,7 @@ angular.module('starter.services', [])
   var chats = [{
     jid: 0,
     name: 'Uesley Lima',
+	subscription: 'both',
     lastText: 'You on your way?',
 	lastType: 'text',
     face: 'img/uesley.jpg',
@@ -17,6 +18,7 @@ angular.module('starter.services', [])
   }, {
     jid: 1,
     name: 'Fabiana Hofer',
+	subscription: 'both',
     lastText: 'Hey, it\'s me',
 	lastType: 'text',
     face: 'img/fabi.jpg',
@@ -27,6 +29,7 @@ angular.module('starter.services', [])
   }, {
     jid: 2,
     name: 'Paulo Vitor Pereira',
+	subscription: 'both',
     lastText: 'I should buy a boat',
 	lastType: 'text',
     face: 'img/paulo.jpg',
@@ -37,6 +40,7 @@ angular.module('starter.services', [])
   }, {
     jid: 3,
     name: 'Paulo Victor Maluf',
+	subscription: 'both',
     lastText: 'Look at my mukluks!',
 	lastType: 'text',
     face: 'img/maluf.jpg',
@@ -47,6 +51,7 @@ angular.module('starter.services', [])
   }, {
     jid: 4,
     name: 'Rafael Grisanti',
+	subscription: 'both',
     lastText: 'This is wicked good ice cream. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa. Testando mensagem super ultra mega blaster ultimate 2 gold platinum realmente longa.',
 	lastType: 'text',
     face: 'img/grisanti.jpg',
@@ -58,19 +63,18 @@ angular.module('starter.services', [])
   
   var rooms = [];
   
-  var chatsScope = null;
+  //var subscriptions = [];
+  
   var currentChat = null;
 
   return {
     all: function() {
       return chats;
     },
-	setChatsScope: function(sent) {
-      chatsScope = sent;
-    },
     remove: function(chat) {
       chats.splice(chats.indexOf(chat), 1);
 	  $localstorage.setObject("chats", chats);
+	  $rootScope.$broadcast('updateChats', {data: 'something'});
     },
 	setCurrent: function(chat) {
 	  currentChat = chat;
@@ -103,7 +107,7 @@ angular.module('starter.services', [])
 			  chats[i].msgs.push(msg);
 			  chats[i].lastText = 'está escrevendo...';
 			  chats[i].lastType = 'composing';
-			  $rootScope.$apply();
+			  $rootScope.$broadcast('updateChats', {data: 'something'});
 			  $rootScope.$broadcast('newMsg', {data: 'something'});
 			  //var elem = document.getElementById('scrollDiv');
 			  //elem.scrollTop = elem.scrollHeight;
@@ -114,10 +118,23 @@ angular.module('starter.services', [])
 	},
 
 	addParticipant: function(room_id, participant) {
+	  var found = false;
 	  for(var i = 0; i < chats.length; i++) {
 		  if(chats[i].jid == room_id) {
-			  chats[i].participants.unshift(participant);
-			  break;
+			  for(var j = 0; j < chats[i].participants.length; j++) {
+				  if(chats[i].participants[j].jid == participant.jid) {
+					  chats[i].participants[j].affiliation = participant.affiliation;
+					  chats[i].participants[j].role = participant.role;
+					  $localstorage.setObject("chats", chats);
+					  found = true;
+					  break;
+				  }
+			  }
+			  if(!found) {
+				chats[i].participants.unshift(participant);
+				$localstorage.setObject("chats", chats);
+			  }
+			break;
 		  }
 	  }
 	},
@@ -165,7 +182,12 @@ angular.module('starter.services', [])
 			  chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
        
 			  if(currentChat != chats[i].jid) {
-				  chats[i].unread++;
+				  if(chats[i].unread == 9) {
+					  chats[i].unread = '9˖';
+				  } else if(chats[i].unread != '9˖') {
+					  chats[i].unread++;
+				  }
+				  
 			  }
 			  
 			  //puts chat in first place, this way the newest messages will alwys be on top
@@ -173,10 +195,8 @@ angular.module('starter.services', [])
 			  //do not use chats[i] after this!! !! !! !! !! !! !! !! !! !! !! !!
 			  
 			  $localstorage.setObject("chats", chats);
-			  if(from!='me') {
-				$rootScope.$apply();
-			  }
-			  $rootScope.$broadcast('newMsg', {data: 'something'});
+			  $rootScope.$broadcast('updateChats', {data: 'something'});
+			  $rootScope.$broadcast('newMsg', {from: msg.from });
 
 			  break;
 		  }
@@ -187,7 +207,7 @@ angular.module('starter.services', [])
 		  if (chats[i].jid == jid) {
 			  chats[i].status = status;
 			  $localstorage.setObject("chats", chats);
-			  $rootScope.$apply();
+			  $rootScope.$broadcast('updateChats', {data: 'something'});
 			  break;
 		  }
 	  }	  
@@ -198,6 +218,7 @@ angular.module('starter.services', [])
 			if(chats[i].jid == contact.jid) {
 				chats[i].name = contact.name;
 				chats[i].face = contact.face;
+				chats[i].subscription = contact.subscription;
 				//chats[i].status = contact.status;
 				//doesn't reset unread nor msgs...
 				found = true;
@@ -208,6 +229,7 @@ angular.module('starter.services', [])
 			chats.unshift(contact);
 		}
 		$localstorage.setObject("chats", chats);
+		$rootScope.$broadcast('updateChats', {data: 'something'});
 	},
 	insertRoom: function(room) {
 		var found = false;
@@ -235,20 +257,142 @@ angular.module('starter.services', [])
 			length = local.length;
 			for(i=0;i<length;i++) {
 				chats.unshift(local.pop());
-				//console.log("Added one..");
+				//this way the pointer the controllers have to chats will be kept
 			}
 			console.log("chats reset to locally stored version");
 		}
+		/*subscriptions is not accessed by controllers so there's no need to keep the pointer
+		if($localstorage.get("subscriptions")) {
+			subscriptions = $localstorage.getObject("subscriptions");
+		}*/
+		
 		//$rootScope.$apply();
-	}
+	},
+	save: function() {
+		$localstorage.setObject("chats", chats);
+	}/*,
+	addSubscription: function(user) {
+		var found = false;
+		for(var i = 0; i < subscriptions.length; i++) {
+			if(subscriptions[i].jid == user.jid) {
+				subscriptions.name = user.name;
+				found = true;
+				$localstorage.setObject("subscriptions", subscriptions);
+				break;
+			}
+		}
+		if(!found) {
+			subscriptions.unshift(user);
+			$localstorage.setObject("subscriptions", subscriptions);
+		}
+	},
+	getSubscription: function(jid) {
+		for(var i = 0; i < subscriptions.length; i++) {
+			if(subscriptions[i].jid == jid) {
+				return subscriptions[i];
+			}
+		}
+		return null;
+	},
+	delSubscription: function(jid) {
+		for(var i = 0; i < subscriptions.length; i++) {
+			if(subscriptions[i].jid == jid) {
+				subscriptions.splice(i,1);
+				$localstorage.setObject("subscriptions", subscriptions);
+				break;
+			}
+		}
+	}*/
   };
 })
 
-.service('$strophe', function($localstorage, Chats) {
+.factory('Dashboard', function($localstorage, $rootScope) {
+  // Might use a resource here that returns a JSON array
+  var iterator = 3;
+
+  // Some fake testing data
+  var cards = [{
+	  id: 2,
+	  type: 'subscribe',
+	  title: 'Solicitação de Amizade',
+	  jid: 'miguel@paulovitorjp.com',
+	  name: 'Miguel',
+	  time: {day: '15', month: '01', year: '15', hours: '12', minutes: '01', seconds: '30'}
+    }, {
+      id: 1,
+	  type: 'broadcast',
+	  title: 'Comentário de Abertura',
+	  text: 'O comentário de abertura iniciará em 5 minutos.',
+	  link: 'http://www.google.com',
+	  time: {day: '14', month: '01', year: '15', hours: '09', minutes: '45', seconds: '30'}
+    }, {
+	  id: 0,
+	  type: 'broadcast',
+	  title: 'Comentário de Fechamento',
+	  text: 'O comentário de fechamento iniciará em 5 minutos.',
+	  link: 'http://www.google.com',
+	  time: {day: '13', month: '01', year: '15', hours: '16', minutes: '45', seconds: '30'}
+    }];
+  
+  return {
+    all: function() {
+      return cards;
+    },
+    remove: function(card) {
+      cards.splice(cards.indexOf(card), 1);
+	  $localstorage.setObject("cards", cards);
+	  //$rootScope.$broadcast('updateDashboard', {data: 'something'});
+    },
+    get: function(cardId) {
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].id == cardId) {
+          return cards[i];
+        }
+      }
+      return null;
+    },
+	addCard: function(type, from) {
+      var card = '';
+	  
+	  var now = new Date();
+	  var day = (now.getDate()<10)?'0'+now.getDate():now.getDate(); //adds left zero
+	  var month = ((now.getMonth()+1)<10)?'0'+(now.getMonth()+1):(now.getMonth()+1); //adds left zero
+	  var year = now.getFullYear()%100;
+	  var hours = (now.getHours()<10)?'0'+now.getHours():now.getHours();//adds left zero
+	  var minutes = (now.getMinutes()<10)?'0'+now.getMinutes():now.getMinutes(); //adds left zero
+	  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
+	  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
+	  
+	  if(type == 'subscribe') {
+		  var name = from.substring(0,from.indexOf('@'));
+		  iterator++;
+		  card = {
+			  id: iterator,
+			  type: 'subscribe',
+			  title: 'Solicitação de Amizade',
+			  jid: from,
+			  name: name,
+			  time: fullTime
+		  }
+	  } else if(type = 'broadcast') {
+		  //TODO
+		  console.log('Type broadcast being added...');
+	  }
+	  if(card != '') {
+		console.log(JSON.stringify(card));
+		cards.unshift(card);
+		$localstorage.setObject("cards", cards);
+	    $rootScope.$broadcast('updateDashboard', {data: 'something'});  
+	  }
+    }
+  };
+})
+
+.service('$strophe', function($localstorage, Chats, Dashboard) {
 	
 	var self = this;
 	
-	var SERVER_NAME = 'localhost';
+	var SERVER_NAME = 'paulovitorjp.com';
 	
 	var BOSH_SERVICE = 'http://' + SERVER_NAME + ':7070/http-bind/';
 
@@ -290,6 +434,11 @@ angular.module('starter.services', [])
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
 		connection.addHandler(self.on_message,null, "message", "chat");
 		connection.addHandler(self.on_group_message,null, "message", "groupchat");
+	}
+	
+	this.disconnect = function () {
+		//console.log("connected called");
+		connection.disconnect();
 	}
 	
 	this.connect = function (ev, data) {
@@ -399,10 +548,12 @@ angular.module('starter.services', [])
 		$(iq).find('item').each(function () {
             var jid = $(this).attr('jid');
             var name = $(this).attr('name') || jid.substring(0,jid.indexOf('@'));
+			var subscription = $(this).attr('subscription') || 'none';
 			var contact = {
 				is_room: false,
 				jid: jid,
 				name: name,
+				subscription: subscription,
 				face: 'img/uesley.jpg',
 				status: 'offline',
 				unread: 0,
@@ -463,6 +614,37 @@ angular.module('starter.services', [])
 		//
 		console.log("on_roster_changed...");
 		console.log(iq);
+		$(iq).find('item').each(function () {
+            var sub = $(this).attr('subscription') || 'none';
+            var jid = $(this).attr('jid');
+			if(jid.indexOf('/') != -1) {
+				jid = jid.substring(0,jid.indexOf('/'));
+			}
+            var name = $(this).attr('name') || jid.substring(0,jid.indexOf('@'));
+			if(sub == 'remove') { //contact is being removed
+				var delchat = Chats.get(jid);
+				if(delchat != null) {
+					Chats.remove(delchat);
+				}
+				console.log(jid + ' was removed from your contact list...');
+			} else {//contact is being added or updated
+				var contact = {
+					is_room: false,
+					jid: jid,
+					name: name,
+					subscription: sub,
+					face: 'img/uesley.jpg',
+					status: 'offline',
+					unread: 0,
+					lastText: '',
+					lastType: 'composing',
+					time: '',
+					msgs: []
+				}
+				Chats.insert(contact);
+				console.log("Contact " + jid + " was updated");
+			}
+		});
 		return true;
 	};
 	
@@ -483,8 +665,33 @@ angular.module('starter.services', [])
 	};
 	
 	this.send_composing = function(jid) {
-		var notify = $msg({to: jid, "type": "chat"}).c('composing', {xmlns: "http://jabber.org/protocol/chatstates"});
+		var notify = $msg({to: jid, type: "chat"}).c('composing', {xmlns: "http://jabber.org/protocol/chatstates"});
         connection.send(notify);
+		return true;
+	};
+	
+	this.accept_subscribe = function(jid) {
+		connection.send($pres({to: jid, type: "subscribed"})); //aceita
+		connection.send($pres({to: jid, type: "subscribe"})); //e também solicita
+		return true;
+	};
+	
+	this.deny_subscribe = function(jid) {
+		connection.send($pres({to: jid, type: "unsubscribed"}));
+		return true;
+	};
+	
+	this.add_user = function(user) {
+		if(user.jid.indexOf('@') == -1) {
+			user.jid = user.jid + "@" + SERVER_NAME;
+		}
+		
+		//Chats.addSubscription(user);
+		var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"}).c("item", user);
+		connection.sendIQ(iq);
+		
+		var subscribe = $pres({to: user.jid, "type": "subscribe"});
+		connection.send(subscribe);
 		return true;
 	};
 	
@@ -501,18 +708,12 @@ angular.module('starter.services', [])
             Chats.isComposing(jid);
         }
 		
-        var body = $(message).find("html > body");
-
-        if (body.length === 0) {
-            body = $(message).find('body');
-            if (body.length > 0) {
-                body = body.text()
-            } else {
-                body = null;
-            }
-        } else {
-            body = body.contents();
-        }
+		body = $(message).find('body');
+		if (body.length > 0) {
+			body = body.text()
+		} else {
+			body = null;
+		}
 
         if (body) {
 			Chats.addMessage(jid,body,jid);//(qual chat, conteudo, remetente)
@@ -581,14 +782,17 @@ angular.module('starter.services', [])
 				Chats.addParticipant(room_id, room_user);
 			}
 		} else { //if presence from user
+			jid = from.substring(0,from.indexOf('/'));
 			if (ptype === 'subscribe') {
-				// populate pending_subscriber, the approve-jid span, and
-				// open the dialog
-				pending_subscriber = from;
-				//$('#approve-jid').text(Strophe.getBareJidFromJid(from));
-				//$('#approve_dialog').dialog('open');
-				//TODO Add an entry to the approval vector
-			} else if (ptype !== 'error') {
+				//someone is asking to subscribe (add to contacts)
+				Dashboard.addCard('subscribe', from); //this from has the slash, but will be cut
+			}/* else if (ptype === 'subscribed') {
+				//user has accepted your invitation, now it will be added to the roster
+				var user = Chats.getSubscription(jid);
+				var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"})
+					.c("item", user);
+				connection.sendIQ(iq);
+			}*/ else if (ptype !== 'error') {
 				if (ptype === 'unavailable') {
 					status = "offline";
 				} else {
@@ -599,7 +803,6 @@ angular.module('starter.services', [])
 						status = "away";
 					}
 				}
-				jid = from.substring(0,from.indexOf('/'));
 				console.log(jid + " is " + status);
 				Chats.setStatus(jid,status);
 			}

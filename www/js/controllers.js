@@ -12,7 +12,7 @@ angular.module('starter.controllers', [])
 
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			user.jid = user.jid + "@localhost"; //change to paulovitorjp.com
+			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
 			$strophe.connect('connect', {
                     jid: user.jid,
                     password: user.password
@@ -40,27 +40,101 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('DashCtrl', function($scope) {	
+.controller('DashCtrl', function($scope, Dashboard, Chats, $strophe) {
+	$scope.cards = Dashboard.all();
+	$scope.$on('updateDashboard',function(event, data) {
+		$scope.$digest();
+	});	
+	$scope.remove = function(card) {
+		Dashboard.remove(card);
+	};
+	$scope.accept = function(card) {
+		//strophe accept subscribe
+		$strophe.accept_subscribe(card.jid);
+		//delete card
+		Dashboard.remove(card);
+		console.log('You accepted ' + card.jid + '\'s invitation');
+	}
+	$scope.cancel = function(card) {
+		//strophe accept subscribe
+		$strophe.deny_subscribe(card.jid);
+		//delete card
+		Dashboard.remove(card);
+		console.log('You denied ' + card.jid + '\'s invitation');
+	}
 })
 
-.controller('ChatsCtrl', function($scope, Chats, $strophe) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
   // listen for the $ionicView.enter event:
   //
   //$scope.$on('$ionicView.enter', function(e) {
+  //  $ionicScrollDelegate.scrollBottom(false);
   //});
   Chats.setCurrent(null);
   $scope.chats = Chats.all();
+  $scope.user = {jid: '', name: ''} // user to be added
   $scope.remove = function(chat) {
     Chats.remove(chat);
   };
-  Chats.setChatsScope($scope);
-/*   $scope.$on('newStatus',function(event, data) {
-	  $scope.chats
-	  console.log("update");
-  }); */
+  $scope.$on('updateChats',function(event, data) {
+	  $scope.logged = $strophe.isLogged();
+	  $scope.$digest();
+  });
+  $scope.showAddPopup = function() {
+	$scope.addPopup = $ionicPopup.show({
+		templateUrl: 'templates/add.html',
+		title: 'Adicione um usuário.', 
+		subTitle: 'O usuário só receberá as mensagens enviadas após a aprovação da solicitação.',
+		scope: $scope,
+		buttons: [
+		  { text: 'Cancelar',
+			onTap: function(e) {
+				$scope.user.jid = '';
+				$scope.user.name = '';
+			}
+		  },
+		  {
+			text: 'Adicionar',
+			type: 'button-positive',
+			onTap: function(e) {
+			  if ($scope.user.jid == '') {
+				//don't allow the user to close unless he enters user jid
+				e.preventDefault();
+			  } else {
+				if ($scope.user.name == '') { // if blank name: gets the first part before @ (in case there is one, otherwise uses the jid)
+					if($scope.user.jid.indexOf('@') == -1) {
+						$scope.user.name = $scope.user.jid;
+					} else {
+						$scope.user.name = $scope.user.jid.substring(0,$scope.user.jid.indexOf('@'));
+					}
+				}
+				return $scope.addUser($scope.user);
+			  }
+			}
+		  }
+		]
+	});
+  };
+  $scope.hideAddPopup = function() {
+	$scope.addPopup.close();
+  };
+  $scope.addUser = function(user) {
+	  if(user) {
+		  console.log(user.jid + ' ' + user.name);
+		  $scope.addPopup.close();
+		  $strophe.add_user(user);
+		  user.jid = '';
+		  user.name = '';
+		  return true;
+	  }
+	  return false;
+  };
+  $scope.$on('$ionicView.enter', function(e) {
+    $scope.logged = $strophe.isLogged();
+  });
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
@@ -70,8 +144,11 @@ angular.module('starter.controllers', [])
   $scope.textMessage = '';
   $scope.composing = false;
   Chats.setCurrent($stateParams.chatId);
-  $ionicScrollDelegate.scrollBottom(false);
   $scope.$on('newMsg',function(event, data) {
+	  console.log(data.from);
+	  if(data.from != 'me') {
+		 $scope.$digest();
+	  }
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
   });
@@ -102,7 +179,7 @@ angular.module('starter.controllers', [])
 	  } else if ((ev.which == 8 || ev.which == 46) && $scope.textMessage == '') {//if (backspace or del) and text empty
 		  //TODO send NOT composing, if possible
 			console.log("Send not composing...");
-	  } else {
+	  } else if (!$scope.chat.is_room){ //does not send composing to rooms...
 		  if(!$scope.composing) {
 			  $scope.composing = true;
 			  $strophe.send_composing($scope.chat.jid);
@@ -209,6 +286,12 @@ angular.module('starter.controllers', [])
     } 
     return url;
   };
+
+  $scope.$on('$ionicView.enter', function(e) {
+    $ionicScrollDelegate.scrollBottom(false);
+	Chats.save(); //saves the chats array because the unread messages are now 0...
+  });
+
 })
 
 .controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage) {
@@ -220,6 +303,7 @@ angular.module('starter.controllers', [])
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
 	  $localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
+	  $strophe.disconnect();
 	  location.reload();
   }
   $scope.showLogoffPopup = function() {
