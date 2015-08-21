@@ -16,8 +16,8 @@ span.status {
 
 span.unread {
 	position: absolute;
-	right:0.75em; /* 0.73em for win chrome */
-	top: 0.13em; /* 0.1em for win chrome */
+	right:0.84em; /* 0.73em for win chrome */
+	top: 0.15em; /* 0.1em for win chrome */
 	font-size: 0.7em; /* 0.8em for win chrome */
 	color: #FFFFFF;
 	font-style: bold;

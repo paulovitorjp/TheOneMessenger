@@ -7,7 +7,7 @@
 	  </div>
 	  <!-- The bar below appears on top of the current header with the search bar and add user button if the user is offline -->
 	  <div ng-if="!logged" id="offline" class="bar bar-header bar-assertive"><h1 class="title">Você está offline...</h1></div>
-	  <div ng-repeat="chat in chats | filter:search.value">
+	  <div ng-repeat="chat in chats track by $index | filter:search.value">
 	  <!-- Below is the normal item for contacts that have accepted your invitation or invited you -->
       <ion-item ng-if="chat.subscription != 'none'" class="item-remove-animate item-avatar item-icon-right" type="item-text-wrap" href="#/tab/chats/{{chat.jid}}">
         <img ng-src="{{chat.face}}">
