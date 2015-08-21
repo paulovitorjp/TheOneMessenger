@@ -21,7 +21,11 @@
     "cordova-plugin-splashscreen",
     "com.ionic.keyboard",
     "org.apache.cordova.media",
-    "cordova-plugin-camera"
+    "cordova-plugin-camera",
+    {
+      "locator": "https://github.com/pwlin/cordova-plugin-file-opener2",
+      "id": "io.github.pwlin.cordova.plugins.fileopener2"
+    }
   ],
   "cordovaPlatforms": [
     "android"

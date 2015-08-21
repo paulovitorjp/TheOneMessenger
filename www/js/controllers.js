@@ -201,7 +201,7 @@ angular.module('starter.controllers', [])
 
   $scope.fullscreen = function(imageSrc){
 
-  	var localimage = $localstorage.getObject(imageSrc);
+  	var localimage = $localstorage.get(imageSrc);
 
     if ( JSON.stringify(localimage) == '{}') {
   	  
@@ -215,7 +215,7 @@ angular.module('starter.controllers', [])
       $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
         .then(function(result) {
           // Success 	
-      	  $localstorage.setObject(imageSrc, targetPath);
+      	  $localstorage.set(imageSrc, targetPath);
       	  console.log("Download Success: " + targetPath + "\n" + result);
       	  $cordovaFileOpener2.open(targetPath,'image/jpeg')
       
@@ -252,7 +252,7 @@ angular.module('starter.controllers', [])
   $scope.thumbnail = function(thumb){
 
     var thumbnail = 'thumb_' + thumb; 
-    var localthumb = $localstorage.getObject(thumbnail);
+    var localthumb = $localstorage.get(thumbnail);
 
     var url = "http://paulovitorjp.com/uploads/" + thumbnail;
     var targetPath = cordova.file.externalDataDirectory + thumbnail;
@@ -265,7 +265,7 @@ angular.module('starter.controllers', [])
         .then(function(result) {
           // Success 	
           // $ionicLoading.hide();  
-          $localstorage.setObject(thumbnail, targetPath);
+          $localstorage.set(thumbnail, targetPath);
         }, function(err) {
              // Error
              // $ionicLoading.show({
@@ -304,10 +304,10 @@ angular.module('starter.controllers', [])
   };
   $scope.logoff = function() {
 	  $scope.logoffPopup.close();
+	  $strophe.disconnect();//why this isn't sending the unavailable presence?
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
 	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
-	  $strophe.disconnect();
 	  location.reload();
   }
   $scope.showLogoffPopup = function() {
@@ -329,8 +329,8 @@ angular.module('starter.controllers', [])
       function(res) {
         success = JSON.stringify(res);
         // Success
-		// $strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
-        Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
+		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
+        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
         console.log("[UploadCtrl] Success: " + success);
       }, function(err) {
         // Error
