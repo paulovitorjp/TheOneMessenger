@@ -205,7 +205,7 @@ angular.module('starter.controllers', [])
   	var localimage = $localstorage.get(imageSrc);
 	console.log("localimage: " + localimage);
 
-    if (!localimage) {
+    if (!localimage && !ionic.Platform.isWebView()) {
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
@@ -255,46 +255,49 @@ angular.module('starter.controllers', [])
 
     var thumbnail = 'thumb_' + thumb; 
     var localthumb = $localstorage.get(thumbnail);
-
     var url = "http://paulovitorjp.com/uploads/" + thumbnail;
-    var targetPath = cordova.file.externalDataDirectory + thumbnail;
-    var options = {};
-    var trustHosts = true;
-	console.log("localthumb: " + localthumb);
 
-    if (!localthumb) {
-  	  console.log("entrei na área..");
-      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
-        .then(function(result) {
-          // Success 	
-          // $ionicLoading.hide(); 
-			console.log("Thumb name: " + thumbnail);
-			console.log("Target path: " + targetPath);
-          $localstorage.set(thumbnail, targetPath);
-        }, function(err) {
-			console.log(JSON.stringify(err));
-             // Error
-             // $ionicLoading.show({
-             //     content: 'Falha ao baixar a imagem.',
-             //     animation: 'fade-in',
-             //     showBackdrop: true,
-             //     maxWidth: 200,
-             //     showDelay: 1000
-             //   });
-           }, function (progress) {
-                // $ionicLoading.show({
-                //   content: 'Loading..',
-                //   animation: 'fade-in',
-                //   showBackdrop: true,
-                //   maxWidth: 200,
-                //   showDelay: 1000
-                // });
-                $timeout(function () {
-                  $scope.downloadProgress = (progress.loaded / progress.total) * 100;
-                })
-              });  
-    } 
-    return url;
+    if (ionic.Platform.isWebView()){
+      var targetPath = cordova.file.externalDataDirectory + thumbnail;
+      var options = {};
+      var trustHosts = true;
+	    console.log("localthumb: " + localthumb);
+
+      if (!localthumb) {
+  	    console.log("entrei na área..");
+        $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+          .then(function(result) {
+            // Success 	
+            // $ionicLoading.hide(); 
+			  console.log("Thumb name: " + thumbnail);
+			  console.log("Target path: " + targetPath);
+            $localstorage.set(thumbnail, targetPath);
+          }, function(err) {
+			  console.log(JSON.stringify(err));
+               // Error
+               // $ionicLoading.show({
+               //     content: 'Falha ao baixar a imagem.',
+               //     animation: 'fade-in',
+               //     showBackdrop: true,
+               //     maxWidth: 200,
+               //     showDelay: 1000
+               //   });
+             }, function (progress) {
+                  // $ionicLoading.show({
+                  //   content: 'Loading..',
+                  //   animation: 'fade-in',
+                  //   showBackdrop: true,
+                  //   maxWidth: 200,
+                  //   showDelay: 1000
+                  // });
+                  $timeout(function () {
+                    $scope.downloadProgress = (progress.loaded / progress.total) * 100;
+                  })
+                });
+      return url;
+      } 
+      return localthumb;
+    } return url;
   };
 
   $scope.$on('$ionicView.enter', function(e) {
