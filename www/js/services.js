@@ -904,19 +904,40 @@ angular.module('starter.services', [])
 
 .factory('$localstorage', ['$window', function($window) {
   return {
-    set: function(key, value) {
+    set: function(key, value) {//this is used by individual values, for example 'jid' of the last logged user and 'logged'
+	//these are saved at the root of the localstorage
       $window.localStorage[key] = value;
     },
-    get: function(key, defaultValue) {
+    get: function(key, defaultValue) {//this is used by individual values, for example 'jid' of the last logged user and 'logged'
+	//these are saved at the root of the localstorage
       return $window.localStorage[key] || defaultValue;
     },
-    setObject: function(key, value) {
-      $window.localStorage[key] = JSON.stringify(value);
+    setObject: function(key, value) {//this is used by JSON values, for example 'chats' and 'cards'
+	//these are saved inside the user's JSON, so only him will be able to access it's contents...
+	  var user_id = $window.localStorage['jid']; // gets user id
+	  var user_data = $window.localStorage[user_id]; //gets user data
+	  if(!user_data) {
+		user_data = {};
+	  } else {
+		user_data = JSON.parse(user_data);
+	  }
+	  user_data[key] = value; // changes the value of key
+	  $window.localStorage[user_id] = JSON.stringify(user_data); // rewrites it
+      //$window.localStorage[key] = JSON.stringify(value);
     },
-    getObject: function(key) {
-      return JSON.parse($window.localStorage[key] || '{}');
+    getObject: function(key) {//this is used by JSON values, for example 'chats' and 'cards'
+	//these are saved inside the user's JSON, so only him will be able to access it's contents...
+	  var user_id = $window.localStorage['jid'];
+	  var user_data = $window.localStorage[user_id];
+	  if(!user_data) {
+		  user_data = {};
+	  } else {
+		  user_data = JSON.parse(user_data);
+	  }
+	  return user_data[key];
+      //return JSON.parse($window.localStorage[key] || '{}');
     },
-	remove: function(key) {
+	remove: function(key) {//this is not used in the app yet, caution to see if it is necessary to remove something from the root or from the users JSON
 		$window.localStorage.removeItem(key);
 	}
   }

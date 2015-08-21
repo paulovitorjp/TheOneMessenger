@@ -137,7 +137,7 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$ionicView.enter', function(e) {
     $scope.logged = $strophe.isLogged();
-	$ionicScrollDelegate.scrollTop(false);
+	//$ionicScrollDelegate.scrollTop(false);
   });
 })
 
@@ -306,7 +306,7 @@ angular.module('starter.controllers', [])
 	  $scope.logoffPopup.close();
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
-	  $localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
+	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
 	  $strophe.disconnect();
 	  location.reload();
   }
