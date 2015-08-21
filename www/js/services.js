@@ -108,7 +108,7 @@ angular.module('starter.services', [])
 			  chats[i].lastText = 'está escrevendo...';
 			  chats[i].lastType = 'composing';
 			  $rootScope.$broadcast('updateChats', {data: 'something'});
-			  $rootScope.$broadcast('newMsg', {data: 'something'});
+			  $rootScope.$broadcast('newMsg', {from: from});
 			  //var elem = document.getElementById('scrollDiv');
 			  //elem.scrollTop = elem.scrollHeight;
 			  //document.getElementById('bottom').scrollIntoView();

@@ -189,8 +189,8 @@ angular.module('starter.controllers', [])
   $scope.send = function() {
 	  if($scope.textMessage != '') { // só envia se realmente tem msg
 		  console.log($scope.textMessage);
-		  //$strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
-		  Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); // essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
+		  $strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
+		  //Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); // essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
 		  $scope.textMessage = '';
 	  }
   };
