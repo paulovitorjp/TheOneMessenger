@@ -12,15 +12,17 @@
         * Enable inline JS: add 'unsafe-inline' to default-src
         * Enable eval(): add 'unsafe-eval' to default-src
         -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com localhost:7070 localhost:35729 paulovitorjp.com:7070 ws:; style-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src *; connect-src 'self' http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 localhost:7070 ws: localhost:35729 http://paulovitorjp.com/uploads/; img-src 'self' http://paulovitorjp.com/uploads/ ">
+
+        <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com localhost:7070 localhost:35729 paulovitorjp.com:7070 ws:; style-src 'self' 'unsafe-inline' 'unsafe-eval'; media-src *; connect-src 'self' http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 localhost:7070 ws: localhost:35729 http://paulovitorjp.com/uploads/; img-src 'self' http://paulovitorjp.com/uploads/ gap://ready"> -->
         <!-- Allow requests to localhost -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ ws:">
-        <!-- Enable all requests, inline styles, and eval() -->
-        <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval';">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ gap://ready ws:">
+         --><!-- Enable all requests, inline styles, and eval() -->
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' 'unsafe-eval';"> -->
         <!-- Allow XHRs via https only -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ ws:">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ gap://ready ws:"> -->
         <!-- Allow iframe to https://cordova.apache.org/ -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ ws:; frame-src 'self' https://cordova.apache.org">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' localhost:7070 localhost:35729 http://paulovitorjp.com:7070/http-bind/ paulovitorjp.com:7070 http://paulovitorjp.com/uploads/ gap://ready ws:; frame-src 'self' gap://ready https://cordova.apache.org"> -->
 
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">

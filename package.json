@@ -28,6 +28,7 @@
     }
   ],
   "cordovaPlatforms": [
-    "android"
+    "android",
+    "ios"
   ]
 }
