@@ -252,7 +252,7 @@ angular.module('starter.services', [])
 		//console.log("reset");//TODO remove this later
 		chats.splice(0,chats.length);
 		console.log("chats reset to empty");
-		if($localstorage.get("chats")) {
+		if($localstorage.getObject("chats")) {
 			local = $localstorage.getObject("chats");
 			length = local.length;
 			for(i=0;i<length;i++) {

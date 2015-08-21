@@ -25,7 +25,7 @@
          <!-- image type: Others -->
           <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar" ng-click="fullscreen(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
-            <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{resized_{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
+            <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
               <img class="full-image" ng-src="{{thumbnail(msg.content)}}">
           </ion-item>
       <!-- image type: Me -->

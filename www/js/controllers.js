@@ -202,9 +202,10 @@ angular.module('starter.controllers', [])
   $scope.fullscreen = function(imageSrc){
 
   	var localimage = $localstorage.get(imageSrc);
+	console.log("localimage: " + localimage);
 
-    if ( JSON.stringify(localimage) == '{}') {
-  	  
+    if (!localimage) {
+  	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
       var options = {};
@@ -258,15 +259,19 @@ angular.module('starter.controllers', [])
     var targetPath = cordova.file.externalDataDirectory + thumbnail;
     var options = {};
     var trustHosts = true;
+	console.log("localthumb: " + localthumb);
 
-    if (JSON.stringify(localthumb) == '{}') {
-  	  
+    if (!localthumb) {
+  	  console.log("entrei na área..");
       $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
         .then(function(result) {
           // Success 	
-          // $ionicLoading.hide();  
+          // $ionicLoading.hide(); 
+			console.log("Thumb name: " + thumbnail);
+			console.log("Target path: " + targetPath);
           $localstorage.set(thumbnail, targetPath);
         }, function(err) {
+			console.log(JSON.stringify(err));
              // Error
              // $ionicLoading.show({
              //     content: 'Falha ao baixar a imagem.',

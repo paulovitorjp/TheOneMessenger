@@ -2,8 +2,8 @@
 OK - when logoff, send presence
 - if remote is composing, and other remote send msg, the remote's lastText will be saved as 'está escrevendo'...
 -* load saved msgs when app loads, not when user logs in
--* do not delete local storage when user logs off
--* keep user data separate from other users who could use the same device
+OK - do not delete local storage when user logs off
+OK - keep user data separate from other users who could use the same device
 OK - show 'disconnected' status when not logged in
 OK - develop subscription presence code, to show subscription requests in the dash page
 OK - add MUC functionality
@@ -18,3 +18,4 @@ OK - sort chats by last message
 - Messages will only be saved on the device that received it. (oh well)
 OK - Leave chats that haven't been accepted yet grayed out...
 -* clean default dashboard cards
+-* store strophe-bosh-session in localStorage also, instead of only sessionStorage, so when app reloads only reconnects
