@@ -1,6 +1,7 @@
 angular.module('starter.controllers', [])
 
 .controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage) {
+  
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
 			templateUrl: 'templates/login.html',
