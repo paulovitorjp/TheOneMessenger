@@ -63,7 +63,7 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup, $ionicScrollDelegate) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -81,6 +81,9 @@ angular.module('starter.controllers', [])
   $scope.$on('updateChats',function(event, data) {
 	  $scope.logged = $strophe.isLogged();
 	  $scope.$digest();
+  });
+  $scope.$on('disconnected',function(event, data) {
+	  $scope.logged = $strophe.isLogged();
   });
   $scope.showAddPopup = function() {
 	$scope.addPopup = $ionicPopup.show({
@@ -133,6 +136,7 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$ionicView.enter', function(e) {
     $scope.logged = $strophe.isLogged();
+	$ionicScrollDelegate.scrollTop(false);
   });
 })
 

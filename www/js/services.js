@@ -386,7 +386,7 @@ angular.module('starter.services', [])
   };
 })
 
-.service('$strophe', function($localstorage, Chats, Dashboard) {
+.service('$strophe', function($localstorage, Chats, Dashboard, $rootScope) {
 	
 	var self = this;
 	
@@ -469,6 +469,7 @@ angular.module('starter.services', [])
 			case Strophe.Status.DISCONNECTED:
 			  connection = conn;
 			  self.setLogged(false);
+			  $rootScope.broadcast('disconnected', {data: 'something'});
 			  console.log('[Connection] DISCONNECTED');
 			  break;
 			case Strophe.Status.DISCONNECTING:
@@ -519,6 +520,7 @@ angular.module('starter.services', [])
 					  console.log('[Connection] DISCONNECTED');
 					  connection = conn;
 					  self.setLogged(false);
+					  $rootScope.broadcast('disconnected', {data: 'something'});
 					  break;
 					case Strophe.Status.DISCONNECTING:
 					  console.log('[Connection] Disconnecting');
