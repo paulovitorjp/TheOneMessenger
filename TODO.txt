@@ -2,6 +2,8 @@
 OK - when logoff, send presence
 - if remote is composing, and other remote send msg, the remote's lastText will be saved as 'está escrevendo'...
 -* load saved msgs when app loads, not when user logs in
+-* do not delete local storage when user logs off
+-* keep user data separate from other users who could use the same device
 OK - show 'disconnected' status when not logged in
 OK - develop subscription presence code, to show subscription requests in the dash page
 OK - add MUC functionality
@@ -14,4 +16,5 @@ OK - add unread msgs
 OK - sort chats by last message
 -* push notifications (ios/android) + sound
 - Messages will only be saved on the device that received it. (oh well)
-- Leave chats that haven't been accepted yet grayed out...
+OK - Leave chats that haven't been accepted yet grayed out...
+-* clean default dashboard cards

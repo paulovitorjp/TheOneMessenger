@@ -65,7 +65,7 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup, $ionicScrollDelegate) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -83,6 +83,9 @@ angular.module('starter.controllers', [])
   $scope.$on('updateChats',function(event, data) {
 	  $scope.logged = $strophe.isLogged();
 	  $scope.$digest();
+  });
+  $scope.$on('disconnected',function(event, data) {
+	  $scope.logged = $strophe.isLogged();
   });
   $scope.showAddPopup = function() {
 	$scope.addPopup = $ionicPopup.show({
@@ -135,6 +138,7 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$ionicView.enter', function(e) {
     $scope.logged = $strophe.isLogged();
+	//$ionicScrollDelegate.scrollTop(false);
   });
 })
 
@@ -190,8 +194,8 @@ angular.module('starter.controllers', [])
   $scope.send = function() {
 	  if($scope.textMessage != '') { // só envia se realmente tem msg
 		  console.log($scope.textMessage);
-		  //$strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
-		  Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); // essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
+		  $strophe.send_message($scope.chat.jid, $scope.textMessage, 'me');
+		  //Chats.addMessage($scope.chat.jid, $scope.textMessage, 'me'); // essa chamada está no $strophe.send_message agora, pra ficar tudo numa coisa só.
 		  $scope.textMessage = '';
 	  }
   };
@@ -303,7 +307,7 @@ angular.module('starter.controllers', [])
 	  $scope.logoffPopup.close();
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
-	  $localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
+	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
 	  $strophe.disconnect();
 	  location.reload();
   }
