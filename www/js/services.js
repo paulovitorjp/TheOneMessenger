@@ -848,7 +848,7 @@ angular.module('starter.services', [])
           allowEdit: false,
           encodingType: Camera.EncodingType.JPEG,
           popoverOptions: CameraPopoverOptions,
-          saveToPhotoAlbum: false,
+          saveToPhotoAlbum: true,
           quality: 100,
         }
 

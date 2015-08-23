@@ -209,8 +209,11 @@ angular.module('starter.controllers', [])
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
+      var mimetype = cordova.file.type(targetPath);
       var options = {};
       var trustHosts = true;
+
+      console.log("Mimetype:" + mimetype);
       
       console.log("url:" + url + "\ntargetPath:" + targetPath);
       
