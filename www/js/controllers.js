@@ -1,6 +1,8 @@
 angular.module('starter.controllers', [])
 
 .controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage) {
+	$scope.unauthorized = false;
+	
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
 			templateUrl: 'templates/login.html',
@@ -9,7 +11,6 @@ angular.module('starter.controllers', [])
 			scope: $scope
 		});
 	};
-
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
 			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
@@ -20,6 +21,12 @@ angular.module('starter.controllers', [])
 			$scope.loginPopup.close();
 		}		
 	};
+	
+	$scope.$on('unauthorized',function(event, data) {
+	  $scope.unauthorized = true;
+	  $scope.showLoginPopup();
+    });
+	
 	if(!$strophe.isLogged()) {
 		console.log("User not logged, opening login popup.");
 		$scope.showLoginPopup();
@@ -43,7 +50,9 @@ angular.module('starter.controllers', [])
 .controller('DashCtrl', function($scope, Dashboard, Chats, $strophe) {
 	$scope.cards = Dashboard.all();
 	$scope.$on('updateDashboard',function(event, data) {
-		$scope.$digest();
+		if(!$scope.$$phase) {
+		  $scope.$digest();
+	    }
 	});	
 	$scope.remove = function(card) {
 		Dashboard.remove(card);
@@ -81,10 +90,15 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('updateChats',function(event, data) {
 	  $scope.logged = $strophe.isLogged();
-	  $scope.$digest();
+	  if(!$scope.$$phase) {
+		  $scope.$digest();
+	  }
   });
   $scope.$on('disconnected',function(event, data) {
 	  $scope.logged = $strophe.isLogged();
+	  if(!$scope.$$phase) {
+		  $scope.$digest();
+	  }
   });
   $scope.showAddPopup = function() {
 	$scope.addPopup = $ionicPopup.show({
@@ -151,7 +165,9 @@ angular.module('starter.controllers', [])
   $scope.$on('newMsg',function(event, data) {
 	  console.log(data.from);
 	  if(data.from != 'me') {
-		 $scope.$digest();
+		 if(!$scope.$$phase) {
+		   $scope.$digest();
+		 }
 	  }
 	  $ionicScrollDelegate.scrollBottom(false);
 	  console.log("scroll");
