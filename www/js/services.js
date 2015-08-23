@@ -183,7 +183,7 @@ angular.module('starter.services', [])
        
 			  if(currentChat != chats[i].jid) {
 				  if(chats[i].unread == 9) {
-					  chats[i].unread = '9˖';
+					  chats[i].unread = '9˖'; //&#726;
 				  } else if(chats[i].unread != '9˖') {
 					  chats[i].unread++;
 				  }
@@ -429,6 +429,7 @@ angular.module('starter.services', [])
 	
 	this.connected = function () {
 		//console.log("connected called");
+		//console.log("strophe-bosh-session: " + $localstorage.get())
 		var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
 		connection.sendIQ(iq,self.on_roster);
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
@@ -459,7 +460,9 @@ angular.module('starter.services', [])
 			  console.log('[Connection] Authenticating');
 			  break;
 			case Strophe.Status.AUTHFAIL:
+			  $rootScope.$broadcast('unauthorized', {data: 'something'});
 			  console.log('[Connection] Unauthorized');
+			  //broadcast
 			  break;
 			case Strophe.Status.CONNECTED:
 			  console.log("[Connection] CONNECTED");
@@ -471,7 +474,7 @@ angular.module('starter.services', [])
 			case Strophe.Status.DISCONNECTED:
 			  connection = conn;
 			  self.setLogged(false);
-			  $rootScope.broadcast('disconnected', {data: 'something'});
+			  $rootScope.$broadcast('disconnected', {data: 'something'});
 			  console.log('[Connection] DISCONNECTED');
 			  break;
 			case Strophe.Status.DISCONNECTING:
@@ -509,6 +512,7 @@ angular.module('starter.services', [])
 					  console.log('[Connection] Authenticating');
 					  break;
 					case Strophe.Status.AUTHFAIL:
+					  $rootScope.$broadcast('unauthorized', {data: 'something'});
 					  console.log('[Connection] Unauthorized');
 					  break;
 					case Strophe.Status.CONNECTED:
@@ -522,7 +526,7 @@ angular.module('starter.services', [])
 					  console.log('[Connection] DISCONNECTED');
 					  connection = conn;
 					  self.setLogged(false);
-					  $rootScope.broadcast('disconnected', {data: 'something'});
+					  $rootScope.$broadcast('disconnected', {data: 'something'});
 					  break;
 					case Strophe.Status.DISCONNECTING:
 					  console.log('[Connection] Disconnecting');

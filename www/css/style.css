@@ -59,5 +59,12 @@ span.composing {
 	padding-right: 0;
 }
 
+#unauthorized {
+	font-size: 0.8em;
+	color: red;
+	font-weight: bold;
+	text-align: center;
+}
+
 #offline {
 }
