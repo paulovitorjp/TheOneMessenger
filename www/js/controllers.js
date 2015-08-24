@@ -7,7 +7,7 @@ angular.module('starter.controllers', [])
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
 			templateUrl: 'templates/login.html',
-			title: 'Faça seu login.', 
+			title: 'Entrar', 
 			subTitle: 'Usuário fornecido pela The One Invest.',
 			scope: $scope
 		});
@@ -23,8 +23,8 @@ angular.module('starter.controllers', [])
 		}		
 	};
 	
-	$scope.$on('unauthorized',function(event, data) {
-	  $scope.unauthorized = true;
+	$scope.$on('relogin',function(event, data) {
+	  $scope.unauthorized = data.unauthorized;
 	  $scope.showLoginPopup();
     });
 	
@@ -38,6 +38,11 @@ angular.module('starter.controllers', [])
 		  if (window.sessionStorage.getItem('strophe-bosh-session')) {
 			  console.log("User session stored, trying to reconnect.");
 			  $strophe.reconnect(jid);
+		  } else if(window.localStorage.getItem('strophe-bosh-session')) {
+			  console.log('User session stored in local storage, trying to reconnect');
+			  window.sessionStorage.setItem('strophe-bosh-session', window.localStorage.getItem('strophe-bosh-session'));
+			  var session = JSON.parse(window.sessionStorage.getItem('strophe-bosh-session'));
+			  $strophe.attach(jid+'/'+session.rid, session.sid, session.rid);
 		  } else {
 			  console.log("Couldn't find session stored, opening login popup.");
 			  $scope.showLoginPopup();
@@ -72,6 +77,10 @@ angular.module('starter.controllers', [])
 		Dashboard.remove(card);
 		console.log('You denied ' + card.jid + '\'s invitation');
 	}
+	$scope.open = function(link) {
+		console.log(link);
+		window.open(link, '_blank');
+	}
 })
 
 .controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup, $ionicScrollDelegate) {
@@ -84,13 +93,16 @@ angular.module('starter.controllers', [])
   //  $ionicScrollDelegate.scrollBottom(false);
   //});
   Chats.setCurrent(null);
+  $scope.monitor = $strophe.isMonitor(); //controls who can send broadcasts
   $scope.chats = Chats.all();
   $scope.user = {jid: '', name: ''} // user to be added
+  $scope.broadcast = {title: '', message: '', link: '', time: ''}; //broadcast to be sent
   $scope.remove = function(chat) {
     Chats.remove(chat);
   };
   $scope.$on('updateChats',function(event, data) {
-	  $scope.logged = $strophe.isLogged();
+	  $scope.logged = $strophe.isLogged(); //$scope.logged is created below at beforeEnter
+	  $scope.monitor = $strophe.isMonitor();
 	  if(!$scope.$$phase) {
 		  $scope.$digest();
 	  }
@@ -104,8 +116,8 @@ angular.module('starter.controllers', [])
   $scope.showAddPopup = function() {
 	$scope.addPopup = $ionicPopup.show({
 		templateUrl: 'templates/add.html',
-		title: 'Adicione um usuário.', 
-		subTitle: 'O usuário só receberá as mensagens enviadas após a aprovação da solicitação.',
+		title: 'Adicionar Usuário', 
+		subTitle: 'O usuário precisará aceitar sua solicitação para que você possa enviar mensagens.',
 		scope: $scope,
 		buttons: [
 		  { text: 'Cancelar',
@@ -150,15 +162,60 @@ angular.module('starter.controllers', [])
 	  }
 	  return false;
   };
-  $scope.$on('$ionicView.enter', function(e) {
-    $scope.logged = $strophe.isLogged();
-	//$ionicScrollDelegate.scrollTop(false);
+  $scope.showBroadcastPopup = function() {
+	$scope.broadcastPopup = $ionicPopup.show({
+		templateUrl: 'templates/broadcast.html',
+		title: 'Enviar Broadcast', 
+		subTitle: 'Essa mensagem será enviada a todos usuários logados.',
+		scope: $scope,
+		buttons: [
+		  { text: 'Cancelar',
+			onTap: function(e) {
+				$scope.broadcast.title = '';
+				$scope.broadcast.message = '';
+				$scope.broadcast.link = '';
+			}
+		  },
+		  {
+			text: 'Enviar',
+			type: 'button-positive',
+			onTap: function(e) {
+			  if ($scope.broadcast.title == '' || $scope.broadcast.message == '') {
+				//don't allow the user to close unless he enters user jid
+				e.preventDefault();
+			  } else {
+				return $scope.sendBroadcast($scope.broadcast);
+			  }
+			}
+		  }
+		]
+	});
+  };
+  $scope.hideBroadcastPopup = function() {
+	$scope.broadcastPopup.close();
+  };
+  $scope.sendBroadcast = function(broadcast) {
+	  if(broadcast) {
+		  console.log("Broadcast\ntitle: " + broadcast.title + "\nmessage: " + broadcast.message + "\nlink: " + broadcast.link);
+		  $scope.broadcastPopup.close();
+		  $strophe.send_broadcast(broadcast);
+		  $scope.broadcast = {title: '', message: '', link: '', time: ''};
+		  return true;
+	  }
+	  return false;
+  };
+  $scope.$on('$ionicView.beforeEnter', function(e) {
+    $ionicScrollDelegate.scrollTop(false);
+	$scope.logged = $strophe.isLogged();
+	$scope.monitor = $strophe.isMonitor();
+	//console.log("vireContentLoaded SCROLL!");
+	//Chats.save(); //saves the chats array because the unread messages are now 0...
   });
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
 	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, 
-	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading) {
+	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   $scope.composing = false;
@@ -171,7 +228,7 @@ angular.module('starter.controllers', [])
 		 }
 	  }
 	  $ionicScrollDelegate.scrollBottom(false);
-	  console.log("scroll");
+	  //console.log("scroll");
   });
   if($scope.chat != null) {
 	  $scope.chat.unread= 0;
@@ -221,7 +278,7 @@ angular.module('starter.controllers', [])
   	var localimage = $localstorage.get(imageSrc);
 	console.log("localimage: " + localimage);
 
-    if (!localimage && !ionic.Platform.isWebView()) {
+    if (!localimage) {
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
@@ -269,7 +326,7 @@ angular.module('starter.controllers', [])
 
   $scope.thumbnail = function(thumb){
 
-    var thumbnail = 'thumb_' + thumb; 
+    var thumbnail = 'resized_' + thumb; 
     var localthumb = $localstorage.get(thumbnail);
     var url = "http://paulovitorjp.com/uploads/" + thumbnail;
 
@@ -315,9 +372,30 @@ angular.module('starter.controllers', [])
       return localthumb;
     } return url;
   };
+  
+    $scope.uploadImage = function(type) {
+	$scope.closePopover();
+    Upload.fileTo("http://paulovitorjp.com/image_upload_script.php", type).then(
+      function(res) {
+        success = JSON.stringify(res);
+        // Success
+		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
+        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
+        console.log("[UploadCtrl] Success: " + success);
+      }, function(err) {
+        // Error
+        console.log("[UploadCtrl] Error: " + err);
+      });
+	};
+	
+  $scope.$on('$ionicView.beforeEnter', function(e) {
+    $ionicScrollDelegate.scrollBottom(false);
+	//console.log("vireContentLoaded SCROLL!");
+	//Chats.save(); //saves the chats array because the unread messages are now 0...
+  });
 
   $scope.$on('$ionicView.enter', function(e) {
-    $ionicScrollDelegate.scrollBottom(false);
+    //$ionicScrollDelegate.scrollBottom(true);
 	Chats.save(); //saves the chats array because the unread messages are now 0...
   });
 
@@ -333,7 +411,7 @@ angular.module('starter.controllers', [])
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
 	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
-	  location.reload();
+	  //location.reload();
   }
   $scope.showLogoffPopup = function() {
 		$scope.logoffPopup = $ionicPopup.confirm({
@@ -346,9 +424,10 @@ angular.module('starter.controllers', [])
 			}
 		});
 	};
+	
 })
 
-.controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
+/* .controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
   $scope.uploadImage = function(type) {
     Upload.fileTo("http://paulovitorjp.com/image_upload_script.php", type).then(
       function(res) {
@@ -362,4 +441,4 @@ angular.module('starter.controllers', [])
         console.log("[UploadCtrl] Error: " + err);
       });
   };
-});
+}); */

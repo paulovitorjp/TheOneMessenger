@@ -59,6 +59,12 @@ span.composing {
 	padding-right: 0;
 }
 
+#broadcast {
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 0;
+}
+
 #unauthorized {
 	font-size: 0.8em;
 	color: red;

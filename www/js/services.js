@@ -183,7 +183,7 @@ angular.module('starter.services', [])
        
 			  if(currentChat != chats[i].jid) {
 				  if(chats[i].unread == 9) {
-					  chats[i].unread = '9˖'; //&#726;
+					  chats[i].unread = '9&#726;'; //&#726;  ˖
 				  } else if(chats[i].unread != '9˖') {
 					  chats[i].unread++;
 				  }
@@ -323,6 +323,7 @@ angular.module('starter.services', [])
 	  type: 'broadcast',
 	  title: 'Comentário de Abertura',
 	  text: 'O comentário de abertura iniciará em 5 minutos.',
+	  name: 'uesley',
 	  link: 'http://www.google.com',
 	  time: {day: '14', month: '01', year: '15', hours: '09', minutes: '45', seconds: '30'}
     }, {
@@ -330,6 +331,7 @@ angular.module('starter.services', [])
 	  type: 'broadcast',
 	  title: 'Comentário de Fechamento',
 	  text: 'O comentário de fechamento iniciará em 5 minutos.',
+	  name: 'uesley',
 	  link: 'http://www.google.com',
 	  time: {day: '13', month: '01', year: '15', hours: '16', minutes: '45', seconds: '30'}
     }];
@@ -351,7 +353,7 @@ angular.module('starter.services', [])
       }
       return null;
     },
-	addCard: function(type, from) {
+	addCard: function(type, from, data) {
       var card = '';
 	  
 	  var now = new Date();
@@ -374,9 +376,18 @@ angular.module('starter.services', [])
 			  name: name,
 			  time: fullTime
 		  }
-	  } else if(type = 'broadcast') {
-		  //TODO
-		  console.log('Type broadcast being added...');
+	  } else if(type == 'broadcast') {
+		  console.log("recebendo BROADCAST...");
+		  iterator++;
+		  card = {
+		    id: iterator,
+		    type: 'broadcast',
+		    title: data.title,
+		    text: data.message,
+			name: from,
+		    link: data.link,
+		    time: data.time || fullTime
+		  }
 	  }
 	  if(card != '') {
 		console.log(JSON.stringify(card));
@@ -405,7 +416,8 @@ angular.module('starter.services', [])
 	var user = {
 	  jid: '',
 	  password: '',
-	  logged: false
+	  logged: false,
+	  isMonitor: false
 	};
   
 	this.isLogged = function() {
@@ -427,14 +439,21 @@ angular.module('starter.services', [])
 	  else $localstorage.set("jid","");
 	};
 	
+	this.isMonitor = function() {
+	  return user.isMonitor;
+	};
+	
 	this.connected = function () {
 		//console.log("connected called");
-		//console.log("strophe-bosh-session: " + $localstorage.get())
 		var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
 		connection.sendIQ(iq,self.on_roster);
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
 		connection.addHandler(self.on_message,null, "message", "chat");
 		connection.addHandler(self.on_group_message,null, "message", "groupchat");
+		//connection.addHandler(self.on_other_message,null, "message", "error");
+		//connection.addHandler(self.on_other_message,null, "message", "headline");
+		//connection.addHandler(self.on_other_message,null, "message", "normal");
+		connection.addHandler(self.on_broadcast,null, "message", "broadcast");
 	}
 	
 	this.disconnect = function () {
@@ -454,13 +473,13 @@ angular.module('starter.services', [])
 			  break;
 			case Strophe.Status.CONNFAIL:
 			  console.log('[Connection] Failed to connect');
-			  connectFailed();
+			  //connectFailed();
 			  break;
 			case Strophe.Status.AUTHENTICATING:
 			  console.log('[Connection] Authenticating');
 			  break;
 			case Strophe.Status.AUTHFAIL:
-			  $rootScope.$broadcast('unauthorized', {data: 'something'});
+			  $rootScope.$broadcast('relogin', {unauthorized: true});
 			  console.log('[Connection] Unauthorized');
 			  //broadcast
 			  break;
@@ -475,6 +494,7 @@ angular.module('starter.services', [])
 			  connection = conn;
 			  self.setLogged(false);
 			  $rootScope.$broadcast('disconnected', {data: 'something'});
+			  $rootScope.$broadcast('relogin', {unauthorized: false});
 			  console.log('[Connection] DISCONNECTED');
 			  break;
 			case Strophe.Status.DISCONNECTING:
@@ -493,8 +513,7 @@ angular.module('starter.services', [])
 	
 	this.reconnect = function (jid) {
 		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
-		  
-		  //first tries to restore a previous connection
+
 		try {
 			conn.restore(jid, function (status) {
 				switch (status) {
@@ -506,13 +525,13 @@ angular.module('starter.services', [])
 					  break;
 					case Strophe.Status.CONNFAIL:
 					  console.log('[Connection] Failed to connect');
-					  connectFailed();
+					  //connectFailed();
 					  break;
 					case Strophe.Status.AUTHENTICATING:
 					  console.log('[Connection] Authenticating');
 					  break;
 					case Strophe.Status.AUTHFAIL:
-					  $rootScope.$broadcast('unauthorized', {data: 'something'});
+					  $rootScope.$broadcast('relogin', {unauthorized: true});
 					  console.log('[Connection] Unauthorized');
 					  break;
 					case Strophe.Status.CONNECTED:
@@ -527,6 +546,7 @@ angular.module('starter.services', [])
 					  connection = conn;
 					  self.setLogged(false);
 					  $rootScope.$broadcast('disconnected', {data: 'something'});
+					  $rootScope.$broadcast('relogin', {unauthorized: false});
 					  break;
 					case Strophe.Status.DISCONNECTING:
 					  console.log('[Connection] Disconnecting');
@@ -546,8 +566,64 @@ angular.module('starter.services', [])
 		}
 	};
 	
+	this.attach = function(jid, sid, rid) {
+		var conn = new Strophe.Connection(BOSH_SERVICE,{'keepalive': true});
+		  //first tries to restore a previous connection
+		try {
+			conn.attach(jid, sid, rid, function(status) {
+				switch (status) {
+					case Strophe.Status.ERROR:
+					  console.log('[Connection] Error');
+					  break;
+					case Strophe.Status.CONNECTING:
+					  console.log('[Connection] Connecting');
+					  break;
+					case Strophe.Status.CONNFAIL:
+					  console.log('[Connection] Failed to connect');
+					  //connectFailed();
+					  break;
+					case Strophe.Status.AUTHENTICATING:
+					  console.log('[Connection] Authenticating');
+					  break;
+					case Strophe.Status.AUTHFAIL:
+					  $rootScope.$broadcast('relogin', {unauthorized: true});
+					  console.log('[Connection] Unauthorized');
+					  break;
+					case Strophe.Status.CONNECTED:
+					  console.log("[Connection] CONNECTED");
+					  connection = conn;
+					  self.setLogged(true,jid);
+					  self.connected();
+					  Chats.reset();
+					  break;
+					case Strophe.Status.DISCONNECTED:
+					  console.log('[Connection] DISCONNECTED');
+					  connection = conn;
+					  self.setLogged(false);
+					  $rootScope.$broadcast('disconnected', {data: 'something'});
+					  $rootScope.$broadcast('relogin', {unauthorized: false});
+					  break;
+					case Strophe.Status.DISCONNECTING:
+					  console.log('[Connection] Disconnecting');
+					  break;
+					case Strophe.Status.ATTACHED:
+					  console.log('[Connection] RECONNECTED');
+					  connection = conn;
+					  self.setLogged(true,jid);
+					  self.connected();
+					  Chats.reset();
+					  break;
+				}
+			});
+		} catch(e) {//TODO here the login popup should open again
+			console.log("COULD NOT ATTACH CONNECTION.");
+			self.setLogged(false);
+		}
+	};
+	
 	this.on_roster = function(iq) {
-		//
+		//when user is logged and receives the roster, saves the session in localstorage for reconnect later.
+		
 		console.log("on_roster ...");
 		console.log(iq);
 		//Chats.reset();
@@ -670,6 +746,14 @@ angular.module('starter.services', [])
 		return true;
 	};
 	
+	this.send_broadcast = function(broadcast) {
+		var body = JSON.stringify(broadcast);
+		var message = $msg({to: 'all@broadcast.paulovitorjp.com', type: 'broadcast'}).c('body').t(body);
+		connection.send(message);
+		//Chats.addMessage(jid, body, from);
+		return true;
+	};
+	
 	this.send_composing = function(jid) {
 		var notify = $msg({to: jid, type: "chat"}).c('composing', {xmlns: "http://jabber.org/protocol/chatstates"});
         connection.send(notify);
@@ -756,6 +840,18 @@ angular.module('starter.services', [])
 		return true;
 	};
 	
+	this.on_broadcast = function(message) {
+		console.log("on_other_message arrived...");
+		console.log(message);
+		var body = $(message).children('body').text();
+		console.log(body);
+		var fromFull = $(message).attr('from');
+		var from = fromFull.substring(0,fromFull.indexOf('@'));
+		JSON.parse(body);
+		console.log("aqui");
+		Dashboard.addCard('broadcast', from, JSON.parse(body));
+	};
+	
 	this.on_presence = function(presence) {
 		
 		console.log("on_presence arrived...");
@@ -780,12 +876,27 @@ angular.module('starter.services', [])
 					var affiliation = $(presence_x).attr('affiliation');
 					var role = $(presence_x).attr('role');
 					room_user = {jid: jid, affiliation: affiliation, role: role};
+					if(room_id.substring(0,room_id.indexOf('@')) == 'monitores') {//if is in room monitores, is monitor
+						if(jid == user.jid.substring(0,user.jid.indexOf('@'))) {
+							user.isMonitor = true;
+							console.log("IS MONITOR");
+							$rootScope.$broadcast('updateChats', {data: 'something'});
+						}
+					}
 				} else {
 					room_user = {jid: jid, affiliation: '', role: ''};
 				}
 				console.log(JSON.stringify(room_user));
 				Chats.insert(room);
 				Chats.addParticipant(room_id, room_user);
+			} else {
+				if(room_id.substring(0,room_id.indexOf('@')) == 'monitores') {//if is not in room monitores, is not monitor
+					if(jid == user.jid.substring(0,user.jid.indexOf('@'))) {
+						user.isMonitor = false;
+						console.log("IS NOT MONITOR");
+						$rootScope.$broadcast('updateChats', {data: 'something'});
+					}
+				}
 			}
 		} else { //if presence from user
 			jid = from.substring(0,from.indexOf('/'));
