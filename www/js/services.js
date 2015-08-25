@@ -878,26 +878,10 @@ angular.module('starter.services', [])
                 //deferred.resolve(uploadOptions.fileName);
                 var resultdata = JSON.stringify(result);
                 var parsedData = JSON.parse(resultdata); 
-                console.log("Upload result: " + parsedData.response);
                 deferred.resolve(parsedData.response);
               }, function(err) {
-              	// $ionicLoading.show({
-               //       content: 'Falha no envio da imagem.',
-               //       animation: 'fade-in',
-               //       showBackdrop: true,
-               //       maxWidth: 200,
-               //       showDelay: 1000
-                // });
-                deferred.reject(err);
-                // $ionicLoading.show();
+                   deferred.reject(err);
               }, function (progress) {
-              	   // $ionicLoading.show({
-                  //    content: 'Enviando...',
-                  //    animation: 'fade-in',
-                  //    showBackdrop: true,
-                  //    maxWidth: 200,
-                  //    showDelay: 1000
-                  //  });
                    $timeout(function () {
                      downloadProgress = (progress.loaded / progress.total) * 100;
                    })
