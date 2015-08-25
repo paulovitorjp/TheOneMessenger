@@ -318,14 +318,7 @@ angular.module('starter.controllers', [])
   	var localimage = $localstorage.get(imageSrc);
 	  console.log("localimage: " + localimage);
 
-<<<<<<< HEAD
-    console.log("Plataforma: " + ionic.Platform.platform());
-
-    // if (!localimage && !ionic.Platform.isWebView()) {
-      if (!localimage) {
-=======
     if (!localimage) {
->>>>>>> master
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
