@@ -64,8 +64,6 @@ angular.module('starter.services', [])
   var rooms = [];
   
   //var subscriptions = [];
-  
-  var currentChat = null;
 
   return {
     all: function() {
@@ -76,9 +74,6 @@ angular.module('starter.services', [])
 	  $localstorage.setObject("chats", chats);
 	  $rootScope.$broadcast('updateChats', {data: 'something'});
     },
-	setCurrent: function(chat) {
-	  currentChat = chat;
-	},
     get: function(chatId) {
       for (var i = 0; i < chats.length; i++) {
         if (chats[i].jid == chatId) {
@@ -340,7 +335,6 @@ angular.module('starter.services', [])
     remove: function(card) {
       cards.splice(cards.indexOf(card), 1);
 	  $localstorage.setObject("cards", cards);
-	  //$rootScope.$broadcast('updateDashboard', {data: 'something'});
     },
     get: function(cardId) {
       for (var i = 0; i < cards.length; i++) {
@@ -450,10 +444,7 @@ angular.module('starter.services', [])
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
 		connection.addHandler(self.on_message,null, "message", "chat");
 		connection.addHandler(self.on_group_message,null, "message", "groupchat");
-		//connection.addHandler(self.on_other_message,null, "message", "error");
-		//connection.addHandler(self.on_other_message,null, "message", "headline");
-		//connection.addHandler(self.on_other_message,null, "message", "normal");
-		connection.addHandler(self.on_broadcast,null, "message", "broadcast");
+		connection.addHandler(self.on_broadcast,null, "message", null);
 	}
 	
 	this.disconnect = function () {
@@ -749,8 +740,8 @@ angular.module('starter.services', [])
 	this.send_broadcast = function(broadcast) {
 		var body = JSON.stringify(broadcast);
 		var message = $msg({to: 'all@broadcast.paulovitorjp.com', type: 'broadcast'}).c('body').t(body);
+		console.log(message);
 		connection.send(message);
-		//Chats.addMessage(jid, body, from);
 		return true;
 	};
 	
@@ -850,6 +841,7 @@ angular.module('starter.services', [])
 		JSON.parse(body);
 		console.log("aqui");
 		Dashboard.addCard('broadcast', from, JSON.parse(body));
+		return true;
 	};
 	
 	this.on_presence = function(presence) {

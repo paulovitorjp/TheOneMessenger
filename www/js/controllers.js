@@ -37,12 +37,12 @@ angular.module('starter.controllers', [])
 			  console.log("chats badge incremented");
 		  } else if(data.tab == 'tab.dash') {
 			  $scope.badgeDash++;
-			  console.log("dasg badge incremented");
+			  console.log("dash badge incremented");
 		  }
 	  }
-	  if(!$scope.$$phase) {
+ 	  if(!$scope.$$phase) {
 		  $scope.$digest();
-	  }
+	  } 
     });
 	
 	$scope.$on('decBadge',function(event, data) {
@@ -134,7 +134,6 @@ angular.module('starter.controllers', [])
   //$scope.$on('$ionicView.enter', function(e) {
   //  $ionicScrollDelegate.scrollBottom(false);
   //});
-  Chats.setCurrent(null);
   $scope.monitor = $strophe.isMonitor(); //controls who can send broadcasts
   $scope.chats = Chats.all();
   $scope.user = {jid: '', name: ''} // user to be added
@@ -265,7 +264,6 @@ angular.module('starter.controllers', [])
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   $scope.composing = false;
-  Chats.setCurrent($stateParams.chatId);
   $scope.$on('newMsg',function(event, data) {
 	  console.log(data.from);
 	  if(data.from != 'me') {
@@ -291,7 +289,6 @@ angular.module('starter.controllers', [])
   };
   $scope.$on('$destroy', function() {
     $scope.popover.remove();
-	Chats.setCurrent(null);
   });
   $scope.enter = function(ev) {
 	  if(ev.which == 13) {//verifica se foi um enter
