@@ -321,15 +321,10 @@ angular.module('starter.controllers', [])
     if (!localimage) {
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
-      var targetPath = cordova.file.externalDataDirectory + imageSrc;
-      var mimetype = cordova.file.type(targetPath);
+      var targetPath = cordova.file.externalDataDirectory + imageSrc;  
       var options = {};
       var trustHosts = true;
-
-      console.log("Mimetype:" + mimetype);
-      
-      console.log("url:" + url + "\ntargetPath:" + targetPath);
-      
+            
       $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
         .then(function(result) {
           // Success 	
@@ -413,20 +408,20 @@ angular.module('starter.controllers', [])
     } return url;
   };
   
-    $scope.uploadImage = function(type) {
-	$scope.closePopover();
-    Upload.fileTo("http://paulovitorjp.com/image_upload_script.php", type).then(
-      function(res) {
-        success = JSON.stringify(res);
-        // Success
-		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
-        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
-        console.log("[UploadCtrl] Success: " + success);
-      }, function(err) {
-        // Error
-        console.log("[UploadCtrl] Error: " + err);
-      });
-	};
+  $scope.uploadImage = function(type) {
+	  $scope.closePopover();
+      Upload.fileTo("http://paulovitorjp.com/upload_script.php", type).then(
+        function(res) {
+          success = JSON.stringify(res);
+          // Success
+		      $strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
+          //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
+          console.log("[UploadCtrl] Success: " + success);
+        }, function(err) {
+             // Error
+             console.log("[UploadCtrl] Error: " + err);
+           });
+	  };
 	
   $scope.$on('$ionicView.beforeEnter', function(e) {
     $ionicScrollDelegate.scrollBottom(false);

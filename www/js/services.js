@@ -922,7 +922,7 @@ angular.module('starter.services', [])
 	};
 })
 
-.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage, $timeout, $ionicLoading, $fileHelper) {
+.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage, $timeout, $ionicLoading) {
   
     function makeid() {
       var text = '';
@@ -963,10 +963,7 @@ angular.module('starter.services', [])
 
           function(fileURL) {
   
-            var mimeType = $fileHelper.getMimetype(fileURL);
-            var extension = $fileHelper.getExtension(mimeType);
-
-          	var uploadOptions = new FileUploadOptions();
+            var uploadOptions = new FileUploadOptions();
             uploadOptions.fileKey = "upfile";
             uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1).replace('%','');
             uploadOptions.mimeType = "application/octet-stream";
@@ -983,6 +980,7 @@ angular.module('starter.services', [])
                 var parsedData = JSON.parse(resultdata); 
                 deferred.resolve(parsedData.response);
               }, function(err) {
+              	   console.log("[Upload Failed] " + JSON.stringify(err));
                    deferred.reject(err);
               }, function (progress) {
                    $timeout(function () {
