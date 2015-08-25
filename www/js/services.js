@@ -819,7 +819,7 @@ angular.module('starter.services', [])
 	};
 })
 
-.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage, $timeout, $ionicLoading) {
+.factory('Upload', function($q, $cordovaCamera, $cordovaFile, $cordovaFileTransfer, $localstorage, $timeout, $ionicLoading, $fileHelper) {
   
     function makeid() {
       var text = '';
@@ -859,37 +859,45 @@ angular.module('starter.services', [])
         $cordovaCamera.getPicture(options).then(
 
           function(fileURL) {
+  
+            var mimeType = $fileHelper.getMimetype(fileURL);
+            var extension = $fileHelper.getExtension(mimeType);
+
           	var uploadOptions = new FileUploadOptions();
             uploadOptions.fileKey = "upfile";
             uploadOptions.fileName = makeid() + fileURL.substr(fileURL.lastIndexOf('/') + 1).replace('%','');
-            uploadOptions.mimeType = "image/jpeg";
+            uploadOptions.mimeType = "application/octet-stream";
             uploadOptions.chunkedMode = false;
 
             uploadOptions.fileName = uploadOptions.fileName.split(".");
-            uploadOptions.fileName = uploadOptions.fileName[0]+".jpg";
+            uploadOptions.fileName = uploadOptions.fileName[0]; 
 
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
-              	$ionicLoading.hide();
-                deferred.resolve(uploadOptions.fileName);
+              	// $ionicLoading.hide();
+                //deferred.resolve(uploadOptions.fileName);
+                var resultdata = JSON.stringify(result);
+                var parsedData = JSON.parse(resultdata); 
+                console.log("Upload result: " + parsedData.response);
+                deferred.resolve(parsedData.response);
               }, function(err) {
-              	$ionicLoading.show({
-                     content: 'Falha no envio da imagem.',
-                     animation: 'fade-in',
-                     showBackdrop: true,
-                     maxWidth: 200,
-                     showDelay: 1000
-                });
+              	// $ionicLoading.show({
+               //       content: 'Falha no envio da imagem.',
+               //       animation: 'fade-in',
+               //       showBackdrop: true,
+               //       maxWidth: 200,
+               //       showDelay: 1000
+                // });
                 deferred.reject(err);
-                $ionicLoading.show();
+                // $ionicLoading.show();
               }, function (progress) {
-              	   $ionicLoading.show({
-                     content: 'Enviando...',
-                     animation: 'fade-in',
-                     showBackdrop: true,
-                     maxWidth: 200,
-                     showDelay: 1000
-                   });
+              	   // $ionicLoading.show({
+                  //    content: 'Enviando...',
+                  //    animation: 'fade-in',
+                  //    showBackdrop: true,
+                  //    maxWidth: 200,
+                  //    showDelay: 1000
+                  //  });
                    $timeout(function () {
                      downloadProgress = (progress.loaded / progress.total) * 100;
                    })
