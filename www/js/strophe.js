@@ -4372,6 +4372,13 @@ Strophe.Bosh.prototype = {
                     'rid': this.rid,
                     'sid': this.sid
                 }));
+				//ADDED BY PAULO VITOR
+				window.localStorage.setItem('strophe-bosh-session', JSON.stringify({
+                    'jid': this._conn.jid,
+                    'rid': this.rid,
+                    'sid': this.sid
+                }));
+				//END OF ADDED BY PAULO VITOR
             }
         } else {
             window.sessionStorage.removeItem('strophe-bosh-session');
