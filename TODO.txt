@@ -1,4 +1,4 @@
--* wrong password, inform user
+OK - wrong password, inform user
 OK - when logoff, send presence
 - if remote is composing, and other remote send msg, the remote's lastText will be saved as 'está escrevendo'...
 -* load saved msgs when app loads, not when user logs in
@@ -18,4 +18,6 @@ OK - sort chats by last message
 - Messages will only be saved on the device that received it. (oh well)
 OK - Leave chats that haven't been accepted yet grayed out...
 -* clean default dashboard cards
--* store strophe-bosh-session in localStorage also, instead of only sessionStorage, so when app reloads only reconnects
+OK - store strophe-bosh-session in localStorage also, instead of only sessionStorage, so when app reloads only reconnects
+OK - Add badges to tabs
+-* Add the time the message was sent to messages, so we can compare the group chat history to messages already received

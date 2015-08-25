@@ -1,6 +1,6 @@
 angular.module('starter.services', [])
 
-.factory('Chats', function($localstorage, $rootScope) {
+.factory('Chats', function($localstorage, $rootScope, $state, $stateParams) {
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
@@ -181,13 +181,10 @@ angular.module('starter.services', [])
 			  chats[i].lastType = type;
 			  chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
        
-			  if(currentChat != chats[i].jid) {
-				  if(chats[i].unread == 9) {
-					  chats[i].unread = '9&#726;'; //&#726;  ˖
-				  } else if(chats[i].unread != '9˖') {
+			  if($stateParams.chatId != chats[i].jid || $state.$current.name != 'tab.chat-detail') {
+				      console.log("adding unread counter");
 					  chats[i].unread++;
-				  }
-				  
+					  $rootScope.$broadcast('incBadge', {tab: 'tab.chats'});
 			  }
 			  
 			  //puts chat in first place, this way the newest messages will alwys be on top
@@ -306,7 +303,7 @@ angular.module('starter.services', [])
   };
 })
 
-.factory('Dashboard', function($localstorage, $rootScope) {
+.factory('Dashboard', function($localstorage, $rootScope, $state) {
   // Might use a resource here that returns a JSON array
   var iterator = 3;
 
@@ -393,7 +390,10 @@ angular.module('starter.services', [])
 		console.log(JSON.stringify(card));
 		cards.unshift(card);
 		$localstorage.setObject("cards", cards);
-	    $rootScope.$broadcast('updateDashboard', {data: 'something'});  
+	    $rootScope.$broadcast('updateDashboard', {data: 'something'});
+		if($state.$current.name != 'tab.dash') {
+			$rootScope.$broadcast('incBadge', {tab: 'tab.dash'});
+		}
 	  }
     }
   };

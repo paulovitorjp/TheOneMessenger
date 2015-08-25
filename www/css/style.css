@@ -8,10 +8,11 @@ span.timestamp {
 	color: #AAAAAA;
 }
 
-span.status {
+#status {
 	position: absolute;
-	right:0.4em;
-	top: 0.1em;
+	right:0.3em;
+	top: 0.3em;
+	font-size: 0.7em;
 }
 
 span.unread {

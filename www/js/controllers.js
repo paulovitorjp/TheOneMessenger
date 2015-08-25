@@ -1,8 +1,10 @@
 angular.module('starter.controllers', [])
 
-.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage) {
+.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state) {
 
 	$scope.unauthorized = false;
+	$scope.badgeDash = 0;
+	$scope.badgeChats = 0;
 
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
@@ -26,6 +28,42 @@ angular.module('starter.controllers', [])
 	$scope.$on('relogin',function(event, data) {
 	  $scope.unauthorized = data.unauthorized;
 	  $scope.showLoginPopup();
+    });
+	
+	$scope.$on('incBadge',function(event, data) {
+	  if(data.tab != $state.$current.name) {
+		  if(data.tab == 'tab.chats') {
+			  $scope.badgeChats++;
+			  console.log("chats badge incremented");
+		  } else if(data.tab == 'tab.dash') {
+			  $scope.badgeDash++;
+			  console.log("dasg badge incremented");
+		  }
+	  }
+	  if(!$scope.$$phase) {
+		  $scope.$digest();
+	  }
+    });
+	
+	$scope.$on('decBadge',function(event, data) {
+	  if(data.tab == 'tab.chats') {
+		  if(data.qtt>$scope.badgeChats) {
+			  $scope.badgeChats = 0;
+		  } else {
+			  $scope.badgeChats -= data.qtt;
+		  }
+		  console.log("chats badge decremented");
+	  } else if(data.tab == 'tab.dash') {
+		  if(data.qtt>$scope.badgeDash) {
+			  $scope.badgeDash = 0;
+		  } else {
+			  $scope.badgeDash -= data.qtt;
+		  }
+		  console.log("dash badge decremented");
+	  }
+	  if(!$scope.$$phase) {
+		  $scope.$digest();
+	  }
     });
 	
 	if(!$strophe.isLogged()) {
@@ -53,7 +91,7 @@ angular.module('starter.controllers', [])
 	}
 })
 
-.controller('DashCtrl', function($scope, Dashboard, Chats, $strophe) {
+.controller('DashCtrl', function($scope, Dashboard, Chats, $strophe, $state, $rootScope) {
 	$scope.cards = Dashboard.all();
 	$scope.$on('updateDashboard',function(event, data) {
 		if(!$scope.$$phase) {
@@ -81,9 +119,13 @@ angular.module('starter.controllers', [])
 		console.log(link);
 		window.open(link, '_blank');
 	}
+	$scope.$on('$ionicView.enter', function(e) {
+		console.log("STATE: " + $state.$current.name);
+		$rootScope.$broadcast('decBadge', {tab: 'tab.dash', qtt: 9999});//clears all dashboard notifications
+	});
 })
 
-.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup, $ionicScrollDelegate) {
+.controller('ChatsCtrl', function($scope, Chats, $strophe, $ionicPopup, $ionicScrollDelegate, $state, $rootScope) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
@@ -208,14 +250,18 @@ angular.module('starter.controllers', [])
     $ionicScrollDelegate.scrollTop(false);
 	$scope.logged = $strophe.isLogged();
 	$scope.monitor = $strophe.isMonitor();
+	console.log("STATE: " + $state.$current.name);
 	//console.log("vireContentLoaded SCROLL!");
 	//Chats.save(); //saves the chats array because the unread messages are now 0...
+  });
+  $scope.$on('$ionicView.enter', function(e) {
+	  $rootScope.$broadcast('decBadge', {tab: 'tab.chats', qtt: 9999});//clears all chat notifications
   });
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
-	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, 
-	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload) {
+	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope,
+	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload, $state) {
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   $scope.composing = false;
@@ -230,9 +276,6 @@ angular.module('starter.controllers', [])
 	  $ionicScrollDelegate.scrollBottom(false);
 	  //console.log("scroll");
   });
-  if($scope.chat != null) {
-	  $scope.chat.unread= 0;
-  }
   $ionicPopover.fromTemplateUrl('templates/my-popover.html', {
     scope: $scope
   }).then(function(popover) {
@@ -396,12 +439,17 @@ angular.module('starter.controllers', [])
 
   $scope.$on('$ionicView.enter', function(e) {
     //$ionicScrollDelegate.scrollBottom(true);
+	if($scope.chat != null) {
+		$rootScope.$broadcast('decBadge', {tab: 'tab.chats', qtt: $scope.chat.unread});
+		$scope.chat.unread= 0;
+    }
 	Chats.save(); //saves the chats array because the unread messages are now 0...
+	console.log("STATE: " + $state.$current.name);
   });
 
 })
 
-.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage) {
+.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage, $state) {
   $scope.settings = {
     enableFriends: true
   };
@@ -423,7 +471,10 @@ angular.module('starter.controllers', [])
 				$scope.logoff();
 			}
 		});
-	};
+  };
+  $scope.$on('$ionicView.enter', function(e) {
+	console.log("STATE: " + $state.$current.name);
+  });
 	
 })
 

@@ -15,11 +15,16 @@
         <h2>{{chat.name}}</h2>
         <p>{{chat.lastText}}</p>
         <i class="icon ion-chevron-right icon-accessory"></i>
-		<span ng-attr-id="{{ chat.jid + '_status' }}" ng-if="chat.status == 'online'" class="status"><i class="ion-record balanced"></i></span>
-		<span ng-attr-id="{{ chat.jid + '_status' }}" ng-if="chat.status == 'away'" class="status"><i class="ion-record energized"></i></span>
-		<span ng-attr-id="{{ chat.jid + '_status' }}" ng-if="chat.status == 'offline'" class="status"><i class="ion-record assertive"></i></span>
+		<!--
+		<span ng-if="chat.status == 'online'" class="status"><i class="ion-record balanced"></i></span>
+		<span ng-if="chat.status == 'away'" class="status"><i class="ion-record energized"></i></span>
+		<span ng-if="chat.status == 'offline'" class="status"><i class="ion-record assertive"></i></span>
+		-->
+		<span id="status" ng-if="chat.status == 'online'" class="badge badge-balanced icon-badge"><i ng-if="chat.unread>0">{{chat.unread}}</i><i ng-if="chat.unread==0">-</i></span>
+		<span id="status" ng-if="chat.status == 'away'" class="badge badge-energized icon-badge"><i ng-if="chat.unread>0">{{chat.unread}}</i><i ng-if="chat.unread==0">-</i></span>
+		<span id="status" ng-if="chat.status == 'offline'" class="badge badge-assertive icon-badge"><i ng-if="chat.unread>0">{{chat.unread}}</i><i ng-if="chat.unread==0">-</i></span>
 		
-		<span ng-if="!(chat.unread == 0)" class="unread">{{chat.unread}}</span>
+		<!--<span ng-if="!(chat.unread == 0)" class="unread">{{chat.unread}}</span>-->
 		<span ng-if="chat.time != ''" class="timestamp">{{chat.time.day}}/{{chat.time.month}}/{{chat.time.year}} {{chat.time.hours}}:{{chat.time.minutes}}</span>
 
         <ion-option-button class="button-assertive" ng-click="remove(chat)">
