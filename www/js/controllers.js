@@ -219,9 +219,12 @@ angular.module('starter.controllers', [])
   $scope.fullscreen = function(imageSrc){
 
   	var localimage = $localstorage.get(imageSrc);
-	console.log("localimage: " + localimage);
+	  console.log("localimage: " + localimage);
 
-    if (!localimage && !ionic.Platform.isWebView()) {
+    console.log("Plataforma: " + ionic.Platform.platform());
+
+    // if (!localimage && !ionic.Platform.isWebView()) {
+      if (!localimage) {
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
       var targetPath = cordova.file.externalDataDirectory + imageSrc;
@@ -280,16 +283,13 @@ angular.module('starter.controllers', [])
       var targetPath = cordova.file.externalDataDirectory + thumbnail;
       var options = {};
       var trustHosts = true;
-	    console.log("localthumb: " + localthumb);
+	    // console.log("localthumb: " + localthumb);
 
       if (!localthumb) {
-  	    console.log("entrei na área..");
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
             // Success 	
             // $ionicLoading.hide(); 
-			  console.log("Thumb name: " + thumbnail);
-			  console.log("Target path: " + targetPath);
             $localstorage.set(thumbnail, targetPath);
           }, function(err) {
 			  console.log(JSON.stringify(err));
@@ -353,7 +353,7 @@ angular.module('starter.controllers', [])
 
 .controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
   $scope.uploadImage = function(type) {
-    Upload.fileTo("http://paulovitorjp.com/image_upload_script.php", type).then(
+    Upload.fileTo("http://paulovitorjp.com/upload_script.php", type).then(
       function(res) {
         success = JSON.stringify(res);
         // Success

@@ -28,7 +28,15 @@
     }
   ],
   "cordovaPlatforms": [
+<<<<<<< HEAD
     "ios",
     "android"
+=======
+    {
+      "platform": "android",
+      "locator": "browser"
+    },
+    "ios"
+>>>>>>> master
   ]
 }
