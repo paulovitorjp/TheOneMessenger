@@ -974,7 +974,7 @@ angular.module('starter.services', [])
 
             $cordovaFileTransfer.upload(serverURL, fileURL, uploadOptions).then(
               function(result) {
-              	// $ionicLoading.hide();
+              	$ionicLoading.hide();
                 //deferred.resolve(uploadOptions.fileName);
                 var resultdata = JSON.stringify(result);
                 var parsedData = JSON.parse(resultdata); 
@@ -983,6 +983,13 @@ angular.module('starter.services', [])
               	   console.log("[Upload Failed] " + JSON.stringify(err));
                    deferred.reject(err);
               }, function (progress) {
+              	   $ionicLoading.show({
+                      content: 'Loading..',
+                      animation: 'fade-in',
+                      showBackdrop: false,
+                      maxWidth: 200,
+                      showDelay: 1000
+                    });
                    $timeout(function () {
                      downloadProgress = (progress.loaded / progress.total) * 100;
                    })

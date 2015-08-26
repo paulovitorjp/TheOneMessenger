@@ -350,6 +350,14 @@ angular.module('starter.controllers', [])
 
     console.log('Extension: ' + extension + ' Mimetype: ' + mimetype);
 
+    $ionicLoading.show({
+            content: 'Loading',
+            animation: 'fade-in',
+            showBackdrop: false,
+            maxWidth: 200,
+            showDelay: 1000
+    });
+
     if (!localimage) {
   	  console.log("entrei na área..");
   	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
@@ -362,7 +370,7 @@ angular.module('starter.controllers', [])
           // Success 	
       	  $localstorage.set(imageSrc, targetPath);
       	  console.log("Download Success: " + targetPath + "\n" + result);
-          
+          $ionicLoading.hide();
       	  $cordovaFileOpener2.open(targetPath,mimetype)
       
         }, function(err) {
@@ -370,21 +378,14 @@ angular.module('starter.controllers', [])
       	  console.log("Download Failed!" + JSON.stringify(err));
       
         }, function (progress) {
-          $ionicLoading.show({
-            content: 'Loading',
-            animation: 'fade-in',
-            showBackdrop: true,
-            maxWidth: 200,
-            showDelay: 0
-          });
-          $timeout(function () {
-            downloadProgress = (progress.loaded / progress.total) * 100;
-            $ionicLoading.hide();
-          })
+             $timeout(function () {
+               downloadProgress = (progress.loaded / progress.total) * 100;
+             })
       });   
       
     } else {
         console.log("localimage: " + localimage);
+        $ionicLoading.hide();
         $cordovaFileOpener2.open(localimage,mimetype).then(function() {    	
           // file opened successfully
           console.log("File opened!");
@@ -411,7 +412,7 @@ angular.module('starter.controllers', [])
         $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
           .then(function(result) {
             // Success 	
-            // $ionicLoading.hide(); 
+            $ionicLoading.hide(); 
             $localstorage.set(thumbnail, targetPath);
           }, function(err) {
 			  console.log(JSON.stringify(err));
@@ -419,18 +420,18 @@ angular.module('starter.controllers', [])
                // $ionicLoading.show({
                //     content: 'Falha ao baixar a imagem.',
                //     animation: 'fade-in',
-               //     showBackdrop: true,
+               //     showBackdrop: false,
                //     maxWidth: 200,
                //     showDelay: 1000
                //   });
              }, function (progress) {
-                  // $ionicLoading.show({
-                  //   content: 'Loading..',
-                  //   animation: 'fade-in',
-                  //   showBackdrop: true,
-                  //   maxWidth: 200,
-                  //   showDelay: 1000
-                  // });
+                  $ionicLoading.show({
+                    content: 'Loading..',
+                    animation: 'fade-in',
+                    showBackdrop: false,
+                    maxWidth: 200,
+                    showDelay: 1000
+                  });
                   $timeout(function () {
                     $scope.downloadProgress = (progress.loaded / progress.total) * 100;
                   })
