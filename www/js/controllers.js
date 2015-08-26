@@ -313,10 +313,42 @@ angular.module('starter.controllers', [])
 	  }
   };
 
+  $scope.getmimetype = function(extension) {
+    switch(extension){
+      case 'jpg':
+        mimetype = 'image/jpeg';
+        break;
+      case 'png':
+        mimetype = 'image/png';
+        break;
+      case 'gif':
+        mimetype = 'image/gif';
+        break;
+      case 'bmp':
+        mimetype = 'image/bmp';
+        break;
+      case 'tif':
+        mimetype = 'image/tiff';
+        break;
+      case '.xls':
+        mimetype = 'application/excel';
+      default: 
+        mimetype = 'application/octet-stream';
+    }
+    return mimetype; 
+  }
+
   $scope.fullscreen = function(imageSrc){
 
   	var localimage = $localstorage.get(imageSrc);
 	  console.log("localimage: " + localimage);
+
+    var extension = imageSrc.split(".");
+    extension = extension[1];
+
+    var mimetype = $scope.getmimetype(extension);
+
+    console.log('Extension: ' + extension + ' Mimetype: ' + mimetype);
 
     if (!localimage) {
   	  console.log("entrei na área..");
@@ -330,7 +362,8 @@ angular.module('starter.controllers', [])
           // Success 	
       	  $localstorage.set(imageSrc, targetPath);
       	  console.log("Download Success: " + targetPath + "\n" + result);
-      	  $cordovaFileOpener2.open(targetPath,'image/jpeg')
+          
+      	  $cordovaFileOpener2.open(targetPath,mimetype)
       
         }, function(err) {
           // Error
@@ -352,7 +385,7 @@ angular.module('starter.controllers', [])
       
     } else {
         console.log("localimage: " + localimage);
-        $cordovaFileOpener2.open(localimage,'image/jpeg').then(function() {    	
+        $cordovaFileOpener2.open(localimage,mimetype).then(function() {    	
           // file opened successfully
           console.log("File opened!");
         }, function(err) {
