@@ -258,7 +258,7 @@ angular.module('starter.controllers', [])
   });
 })
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, 
+.controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $getPlatform, $ionicPopup,
 	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope,
 	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload, $state) {
   $scope.chat = Chats.get($stateParams.chatId);
@@ -337,6 +337,26 @@ angular.module('starter.controllers', [])
     }
     return mimetype; 
   }
+  
+  $scope.showfullimagePopup = function(imageurl) {
+  
+    $scope.fullimage = { url: imageurl };
+
+    $scope.fullimagePopup = $ionicPopup.show({
+      cssClass: 'imgpopup',
+      templateUrl: 'templates/fullimage-popover.html',
+      scope: $scope,
+      buttons: [{
+        text: 'Fechar',
+        type: 'button-positive',
+        onTap: function(e) {
+          $scope.fullimagePopup.close();
+        }
+      }]
+    });
+  };
+
+
 
   $scope.fullscreen = function(imageSrc){
 
@@ -344,55 +364,61 @@ angular.module('starter.controllers', [])
 	  console.log("localimage: " + localimage);
 
     var extension = imageSrc.split(".");
-    extension = extension[1];
+        extension = extension[1];
 
     var mimetype = $scope.getmimetype(extension);
+    var isMobile = $getPlatform.isMobile();
 
-    console.log('Extension: ' + extension + ' Mimetype: ' + mimetype);
+    var url = "http://paulovitorjp.com/uploads/" + imageSrc;
 
-    $ionicLoading.show({
-            content: 'Loading',
-            animation: 'fade-in',
-            showBackdrop: false,
-            maxWidth: 200,
-            showDelay: 1000
-    });
+    console.log('Extension: ' + extension + ' Mimetype: ' + mimetype + ' Is Mobile? ' + isMobile);
+    
+    if(isMobile){
+      $ionicLoading.show({
+        content: 'Loading',
+        animation: 'fade-in',
+        showBackdrop: false,
+        maxWidth: 200,
+        showDelay: 1000
+      });
 
-    if (!localimage) {
-  	  console.log("entrei na área..");
-  	  var url = "http://paulovitorjp.com/uploads/" + imageSrc;
-      var targetPath = cordova.file.externalDataDirectory + imageSrc;  
-      var options = {};
-      var trustHosts = true;
+      if (!localimage) {
+  	    console.log("entrei na área..");
+  	    
+        var targetPath = cordova.file.externalDataDirectory + imageSrc;  
+        var options = {};
+        var trustHosts = true;
             
-      $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
-        .then(function(result) {
-          // Success 	
-      	  $localstorage.set(imageSrc, targetPath);
-      	  console.log("Download Success: " + targetPath + "\n" + result);
-          $ionicLoading.hide();
-      	  $cordovaFileOpener2.open(targetPath,mimetype)
-      
+        $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+          .then(function(result) {
+            // Success 	
+      	    $localstorage.set(imageSrc, targetPath);
+      	    console.log("Download Success: " + targetPath + "\n" + result);
+            $ionicLoading.hide();
+      	    $cordovaFileOpener2.open(targetPath,mimetype)
         }, function(err) {
-          // Error
-      	  console.log("Download Failed!" + JSON.stringify(err));
-      
+            // Error
+        	  console.log("Download Failed!" + JSON.stringify(err));
         }, function (progress) {
              $timeout(function () {
                downloadProgress = (progress.loaded / progress.total) * 100;
              })
-      });   
+        });   
       
+      } else {
+          console.log("localimage: " + localimage);
+          $ionicLoading.hide();
+          $cordovaFileOpener2.open(localimage,mimetype).then(function() {    	
+            // file opened successfully
+            console.log("File opened!");
+          }, function(err) {
+            // An error occurred. Show a message to the user
+            console.log("Open failed." + JSON.stringify(err));
+          });
+        }
     } else {
-        console.log("localimage: " + localimage);
-        $ionicLoading.hide();
-        $cordovaFileOpener2.open(localimage,mimetype).then(function() {    	
-          // file opened successfully
-          console.log("File opened!");
-        }, function(err) {
-          // An error occurred. Show a message to the user
-          console.log("Open failed." + JSON.stringify(err));
-        });
+        console.log('show popup');
+        $scope.showfullimagePopup(url);
       }
   };
 
@@ -401,8 +427,9 @@ angular.module('starter.controllers', [])
     var thumbnail = 'resized_' + thumb; 
     var localthumb = $localstorage.get(thumbnail);
     var url = "http://paulovitorjp.com/uploads/" + thumbnail;
+    var isMobile = $getPlatform.isMobile();
 
-    if (ionic.Platform.isWebView()){
+    if (isMobile){
       var targetPath = cordova.file.externalDataDirectory + thumbnail;
       var options = {};
       var trustHosts = true;

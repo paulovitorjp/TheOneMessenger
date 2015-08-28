@@ -1006,6 +1006,24 @@ angular.module('starter.services', [])
     }
 })
 
+.service('$getPlatform', function() {
+
+  this.isMobile = function() {
+
+  var isWebView = ionic.Platform.isWebView();
+  var isIPad = ionic.Platform.isIPad();
+  var isIOS = ionic.Platform.isIOS();
+  var isAndroid = ionic.Platform.isAndroid();
+  var isWindowsPhone = ionic.Platform.isWindowsPhone();
+
+  if (isWindowsPhone||isIPad||isIOS||isAndroid||isWindowsPhone) {
+    return true 
+  } else {
+     return false
+    }
+  }
+})
+
 .factory('$localstorage', ['$window', function($window) {
   return {
     set: function(key, value) {//this is used by individual values, for example 'jid' of the last logged user and 'logged'
