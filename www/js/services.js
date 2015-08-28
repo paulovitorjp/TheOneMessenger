@@ -176,7 +176,7 @@ angular.module('starter.services', [])
 			  chats[i].lastType = type;
 			  chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
        
-			  if($stateParams.chatId != chats[i].jid || $state.$current.name != 'tab.chat-detail') {
+			  if($stateParams.chatId != chats[i].jid || $state.$current.name != 'tab.chats.detail') {
 				      console.log("adding unread counter");
 					  chats[i].unread++;
 					  $rootScope.$broadcast('incBadge', {tab: 'tab.chats'});
@@ -393,7 +393,7 @@ angular.module('starter.services', [])
   };
 })
 
-.service('$strophe', function($localstorage, Chats, Dashboard, $rootScope) {
+.service('$strophe', function($localstorage, Chats, Dashboard, $rootScope, $pushWoosh) {
 	
 	var self = this;
 	
@@ -406,6 +406,8 @@ angular.module('starter.services', [])
 	var scope = null;
 	
 	var pending_subscriber = null;
+	
+	var rooms_responded = 0;
 	  
 	var user = {
 	  jid: '',
@@ -427,6 +429,9 @@ angular.module('starter.services', [])
 	  //setCookie("logged",bool,10);//10 dias expira
 	  $localstorage.set("logged",bool);
 	  if(bool) {
+		if(jid.indexOf('/') != -1) {
+			jid = jid.substring(0,jid.indexOf('/')); //removes the resource id that gets here if the connection is being attached
+		}
 		user.jid = jid;
 		$localstorage.set("jid",user.jid);
 	  }
@@ -444,7 +449,8 @@ angular.module('starter.services', [])
 		connection.addHandler(self.on_roster_changed,"jabber:iq:roster", "iq", "set");
 		connection.addHandler(self.on_message,null, "message", "chat");
 		connection.addHandler(self.on_group_message,null, "message", "groupchat");
-		connection.addHandler(self.on_broadcast,null, "message", null);
+		connection.addHandler(self.on_broadcast,null, "message", "broadcast");
+		$pushWoosh.setTag('JID', user.jid);
 	}
 	
 	this.disconnect = function () {
@@ -722,17 +728,31 @@ angular.module('starter.services', [])
 	};
 	
 	this.send_message = function(jid, body, from) {
+		var type = '';
+		var fromName = '';
+		var data = '';
 		var message = '';
 		if(jid.indexOf('@conference')!=-1) {
 			message = $msg({to: jid, type: 'groupchat'}).c('body').t(body);
+			type = 'groupchat';
+			fromName = jid.substring(0, jid.indexOf('@'));
 		}
 		else {
 			message = $msg({to: jid, type: 'chat'}).c('body').t(body).up()
                 .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+			type = 'chat';
+			fromName = user.jid.substring(0, user.jid.indexOf('@'));
 		}
 		if(message != '') {
 			connection.send(message);
 			Chats.addMessage(jid, body, from);
+			data = {
+				state: 'tab.chats.detail',
+				params: {
+					chatId: user.jid
+				}
+			};
+			$pushWoosh.sendNotification(fromName, jid, body, data, type);
 		}
 		return true;
 	};
@@ -742,6 +762,11 @@ angular.module('starter.services', [])
 		var message = $msg({to: 'all@broadcast.paulovitorjp.com', type: 'broadcast'}).c('body').t(body);
 		console.log(message);
 		connection.send(message);
+		var data = {
+			state: 'tab.dash',
+			params: ''
+		};
+		$pushWoosh.sendNotification(broadcast.title, '', broadcast.message, data, 'broadcast');
 		return true;
 	};
 	
@@ -838,9 +863,8 @@ angular.module('starter.services', [])
 		console.log(body);
 		var fromFull = $(message).attr('from');
 		var from = fromFull.substring(0,fromFull.indexOf('@'));
-		JSON.parse(body);
-		console.log("aqui");
 		Dashboard.addCard('broadcast', from, JSON.parse(body));
+		
 		return true;
 	};
 	
@@ -868,11 +892,12 @@ angular.module('starter.services', [])
 					var affiliation = $(presence_x).attr('affiliation');
 					var role = $(presence_x).attr('role');
 					room_user = {jid: jid, affiliation: affiliation, role: role};
-					if(room_id.substring(0,room_id.indexOf('@')) == 'monitores') {//if is in room monitores, is monitor
-						if(jid == user.jid.substring(0,user.jid.indexOf('@'))) {
+					if(jid == user.jid.substring(0,user.jid.indexOf('@'))) {//this user is in room, this means end of room
+						$rootScope.$broadcast('newRoom', {roomId: room_id});
+						if(room_id.substring(0,room_id.indexOf('@')) == 'monitores') {//if is in room monitores, is monitor	
 							user.isMonitor = true;
 							console.log("IS MONITOR");
-							$rootScope.$broadcast('updateChats', {data: 'something'});
+							$rootScope.$broadcast('updateChats', {data: 'something'});//shows broadcast function
 						}
 					}
 				} else {
@@ -1063,4 +1088,188 @@ angular.module('starter.services', [])
 		$window.localStorage.removeItem(key);
 	}
   }
-}]);
+}])
+
+.service('$pushWoosh', function($localstorage, $rootScope, $state) {
+	
+	var pushNotification = null;
+	var self = this;
+	var platform = '';
+	var pushToken = '';
+	var registered = 'false';
+	var cachedTags = {};
+	
+	this.setRegistered = function(bool) {
+		registered = bool;
+		$rootScope.$broadcast('deviceRegister', {registered: bool});
+	}
+	
+	this.getRegistered = function() {
+		return registered;
+	}
+	
+	this.init = function() {
+		var isIPad = ionic.Platform.isIPad();
+		var isIOS = ionic.Platform.isIOS();
+		var isAndroid = ionic.Platform.isAndroid();
+		if(isAndroid) {
+			platform = 'Android';
+			self.initAndroid();
+		} else if(isIOS || isIPad) {
+			platform = 'iOS';
+			self.initIOS();
+		}
+	};
+	
+	this.initAndroid = function() {
+		pushNotification = cordova.require("com.pushwoosh.plugins.pushwoosh.PushNotification");
+		//set push notifications handler
+		document.addEventListener('push-notification', function(event) {
+			var notification = event.notification;
+			pushNotification.getLaunchNotification(function(payload) {
+				if(payload && payload.onStart) { //if there is a payload the app was last opened by push
+					var rcvdState = payload.userdata.state || 'tab.chats';
+					var rcvdParams = payload.userdata.params || {};
+					$state.go(rcvdState,rcvdParams);
+					console.log("Opened by push, rcvdState: " + rcvdState + " rcvdParams: " + JSON.stringify(rcvdParams));
+				} else {
+					console.log("App was already opened, you won't be redirected to chat.");
+				}
+			});				 
+			console.warn("Notificação recebida!");
+			console.log("Notificação: " + JSON.stringify(notification));
+		});
+		//initialize Pushwoosh with projectid: "GOOGLE_PROJECT_NUMBER", pw_appid : "PUSHWOOSH_APP_ID". This will trigger all pending push notifications on start.
+		pushNotification.onDeviceReady({ projectid: "773091798737", pw_appid : "F58BF-575B5" });
+		//register for pushes
+		pushNotification.registerDevice(
+			function(status) {
+				pushToken = status;
+				self.setRegistered(true);
+				console.log('push token: ' + pushToken);
+				self.setCachedTags();
+			},
+			function(status) {
+				console.warn(JSON.stringify(['failed to register ', JSON.stringify(status)]));
+			}
+		);
+		//sets multi notification mode, otherwise ony the last notification is displayed
+		pushNotification.setMultiNotificationMode(
+			function(status) {
+				console.log('Multiple notifications mode set. Status: ' + JSON.stringify(status));
+			},
+			function(status) {
+				console.warn('Multiple notifications mode FAILED. Status: ' + JSON.stringify(status));
+			}
+		);
+	};
+	
+	this.initIOS = function() {
+		//TODO
+	};
+	
+	this.setTag = function(tagName, tagValue) {
+		if(pushNotification && Object.keys(cachedTags).length == 0) {
+			var tagJSON = {};
+			tagJSON[tagName] = tagValue;
+			pushNotification.setTags(tagJSON,
+				function(status) {
+					console.log('Tag set successfully:\n' + JSON.stringify(tagJSON) + '\nStatus: ' + JSON.stringify(status));
+				}, 
+				function(status) {
+					console.warn('Tag set failed:\n' + JSON.stringify(tagJSON) + '\nStatus: ' + JSON.stringify(status));
+				}
+			);	
+		} else {
+			console.warn('setTag failed. Push service not initialized. Caching tags to be set when registered.');
+			cachedTags[tagName] = tagValue;
+		}
+	};
+	
+	this.setCachedTags = function() { //if setTags is called when device is not registered yet, the tags will be cached
+		if(Object.keys(cachedTags).length > 0) {//and set in this method after the device registers
+			pushNotification.setTags(cachedTags,
+				function(status) {
+					console.log('Cached tags set successfully:\n' + JSON.stringify(cachedTags) + '\nStatus: ' + JSON.stringify(status));
+					cachedTags = {};
+				}, 
+				function(status) {
+					console.warn('Cached tags set failed:\n' + JSON.stringify(cachedTags) + '\nStatus: ' + JSON.stringify(status));
+				}
+			);
+		} else {
+			console.log('No tags cached for setting.');
+		}
+
+	};
+	
+	this.sendNotification = function(fromName, toJID, message, data, type) { //this method send a notification to the chat partner
+	//if multiNotifications is enable, careful to delete the latest notification for the same chat partner
+	//before sending another
+		var TAG_CONDITION1 = [];
+		if (type == 'chat') {
+			TAG_CONDITION1 = ['JID','EQ',toJID];
+		} else if (type == 'groupchat') {
+			TAG_CONDITION1 = ['Groups','IN',[toJID]];
+		} else if (type == 'broadcast') {
+			TAG_CONDITION1 = [];
+		} else {
+			console.warn("[PushWoosh] Wrong message type! Will try to deliver..."); //in case it isn't chat or groupchat
+		}
+		message = fromName + ': ' + message;
+		var content = {
+		   "request":{
+			  "application":"F58BF-575B5",
+			  "auth": "R85kUlh4YYqj5PvOme1WkbOtgCJ4jSHzTIRXmqRfPJG5U83gb51IjPdHDaIqYVgAD6eze0keJrtTnyqHmaTL",
+			  "notifications":[
+				 {
+					// Content settings 
+					"send_date":"now",           // YYYY-MM-DD HH:mm  OR 'now'
+					"content": message, 
+					"data": data,
+					"platforms": [1,3], // 1 - iOS; 2 - BB; 3 - Android; 4 - Nokia ASHA; 5 - Windows Phone; 7 - OS X; 8 - Windows 8; 9 - Amazon; 10 - Safari; 11 - Chrome
+					"send_rate": 1000, // Throttling. Valid values are from 100 to 1000 pushes/second.
+		 
+					// iOS related
+					"ios_ttl": 36000, // Optional. Time to live parameter - the maximum lifespan of a message in seconds
+					"apns_trim_content":1,     // Optional. (0|1) Trims the exceeding content strings with ellipsis
+		 
+					// Android related
+					"android_root_params": data, // custom key-value object. root level parameters for the android payload recipients
+					"android_gcm_ttl": 36000, // Optional. Time to live parameter - the maximum lifespan of a message in seconds
+					"android_vibration": 0,   // Android force-vibration for high-priority pushes, boolean
+					"android_led":"#0ea7ed",  // LED hex color, device will do its best approximation
+					"android_priority":0,  // Priority of the push in the Android push drawer, valid values are -2, -1, 0, 1 and 2
+					"android_ibc":"#ffffff"  // Icon background color on Lollipop, #RRGGBB, #AARRGGBB, "red", "black", "yellow", etc.
+					//"conditions": [TAG_CONDITION1] //Optional. See remark
+				 }
+			  ]
+		   }
+		};
+		if(type != 'broadcast') {
+			content.request.notifications[0]["conditions"] = [TAG_CONDITION1];
+		}
+		
+		console.log(JSON.stringify(content.request.notifications[0]));
+		
+		jQuery.post("https://cp.pushwoosh.com/json/1.3/createMessage", JSON.stringify(content), function(res) {
+			console.log('MESSAGE CREATED!\n' + JSON.stringify(res));
+		}, 'application/json');
+		
+	};
+	
+	this.unregister = function() {
+		if(pushNotification) {
+			pushNotification.unregisterDevice(
+				function(status) {
+					self.setRegistered(false);
+					console.log('Device successfully unregistered. Status: ' + status);
+				},
+				function(status) {
+					console.warn('Device unregister FAILED. Status: ' + status);
+				}
+			);
+		}
+	};
+	
+});
