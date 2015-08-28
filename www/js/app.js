@@ -7,7 +7,7 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'ngCordova', 'ionic-audio', 'ngMessages'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $pushWoosh) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -20,6 +20,12 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       // org.apache.cordova.statusbar required
       StatusBar.styleLightContent();
     }
+	
+	//starts pushWoosh
+	if(ionic.Platform.isWebView()) {
+		$pushWoosh.init();
+	}
+	
   });
 })
 
@@ -60,10 +66,11 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         }
       }
     })
-    .state('tab.chat-detail', {
-      url: '/chats/:chatId',
+    //.state('tab.chat-detail', {
+	.state('tab.chats.detail', {
+      url: '/:chatId',
       views: {
-        'tab-chats': {
+        'tab-chats@tab': {
           templateUrl: 'templates/chat-detail.html',
           controller: 'ChatDetailCtrl'
         }
@@ -81,7 +88,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
   });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/dash');
+  $urlRouterProvider.otherwise('/tab/chats');
 
 })
 

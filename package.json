@@ -25,6 +25,10 @@
     {
       "locator": "https://github.com/pwlin/cordova-plugin-file-opener2",
       "id": "io.github.pwlin.cordova.plugins.fileopener2"
+    },
+    {
+      "locator": "https://github.com/Pushwoosh/pushwoosh-phonegap-3.0-plugin.git",
+      "id": "com.pushwoosh.plugins.pushwoosh"
     }
   ],
   "cordovaPlatforms": [

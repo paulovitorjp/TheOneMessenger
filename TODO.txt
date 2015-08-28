@@ -12,7 +12,7 @@ OK - accent tilde fix "que horas sÃ£o"
 - fix dates so it would show only the hours and minutes for messages sent today, and date and hours and minutes for msgs sent before today
 OK - feature to add user/room
 OK - add unread msgs
-- If a user is at the account tab or status tab after being at a chat detail, the unread counter won't increase
+OK - If a user is at the account tab or status tab after being at a chat detail, the unread counter won't increase
 OK - sort chats by last message
 -* push notifications (ios/android) + sound
 - Messages will only be saved on the device that received it. (oh well)
@@ -21,3 +21,4 @@ OK - Leave chats that haven't been accepted yet grayed out...
 OK - store strophe-bosh-session in localStorage also, instead of only sessionStorage, so when app reloads only reconnects
 OK - Add badges to tabs
 -* Add the time the message was sent to messages, so we can compare the group chat history to messages already received
+-* save dashboard cards to localstorage too

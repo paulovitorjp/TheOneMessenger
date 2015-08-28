@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state) {
+.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Chats) {
 
 	$scope.unauthorized = false;
 	$scope.badgeDash = 0;
@@ -28,6 +28,26 @@ angular.module('starter.controllers', [])
 	$scope.$on('relogin',function(event, data) {
 	  $scope.unauthorized = data.unauthorized;
 	  $scope.showLoginPopup();
+    });
+	
+	$scope.$on('newRoom',function(event, data) {//separates the rooms the user has access to to add them to the Groups tag
+	  var chats = Chats.all();
+	  var groups = [];
+	  for (var i=0; i<chats.length; i++) {
+		  var jid = chats[i].jid;
+		  if(typeof jid == 'string' && jid.indexOf('@conference') != -1) {
+			  groups.push(chats[i].jid);
+		  }
+	  }
+	  if(groups.length > 0) {
+		  if(groups.indexOf(data.roomId) == -1) {
+			  groups.push(data.roomId);
+		  }
+	  } else {
+		  groups.push(data.roomId);
+	  }
+	  console.log('Groups: ' + groups);
+	  $pushWoosh.setTag('Groups', groups);
     });
 	
 	$scope.$on('incBadge',function(event, data) {
@@ -446,13 +466,14 @@ angular.module('starter.controllers', [])
 
 })
 
-.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage, $state) {
+.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh) {
   $scope.settings = {
     enableFriends: true
   };
   $scope.logoff = function() {
 	  $scope.logoffPopup.close();
 	  $strophe.disconnect();//why this isn't sending the unavailable presence?
+	  $pushWoosh.unregister(); //unregister device so it won't receive further notifications
 	  console.log("Logged off.");
 	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
 	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
