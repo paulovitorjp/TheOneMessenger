@@ -6,6 +6,12 @@
 -->
 <ion-view view-title="{{chat.name}}">
   <ion-content class="padding" lazy-scroll>
+    <!-- CARDS W/ 0 LENGTH MESSAGE -->
+	<div class="card" style="text-align:center" ng-if="chat.msgs.length == 0">
+	  <div class="item item-text-wrap">
+		Envie a primeira mensagem para {{chat.name}}.
+	  </div>
+	</div>
     <!--<div id="scrollDiv">-->
       <ion-list>
 	      <div class="card" ng-repeat="msg in chat.msgs track by $index">

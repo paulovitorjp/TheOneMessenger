@@ -1,13 +1,19 @@
 <ion-view view-title="Chats">
   <ion-content>
-    <ion-list>
-	  <div class="bar bar-header item-input-inset">
-	    <button ng-if="monitor" ng-click="showBroadcastPopup()" id="broadcast" class="button positive button-icon ion-radio-waves" ></button>
-	    <ion-search placeholder="Procurar" filter="search"></ion-search>
-		<button ng-click="showAddPopup()" id="addUser" class="button positive button-icon ion-person-add" ></button>
+    <div class="bar bar-header item-input-inset">
+	  <button ng-if="monitor" ng-click="showBroadcastPopup()" id="broadcast" class="button positive button-icon ion-radio-waves" ></button>
+	  <ion-search placeholder="Procurar" filter="search"></ion-search>
+	  <button ng-click="showAddPopup()" id="addUser" class="button positive button-icon ion-person-add" ></button>
+	</div>
+	<!-- The bar below appears on top of the current header with the search bar and add user button if the user is offline -->
+	<div ng-if="!logged" id="offline" class="bar bar-header bar-assertive"><h1 class="title">Você está offline...</h1></div>
+	<!-- CARDS W/ 0 LENGTH MESSAGE -->
+	<div class="card" style="text-align:center" ng-if="chats.length == 0">
+	  <div class="item item-text-wrap">
+		Aqui você encontrará os grupos e chats individuais, comece adicionando um usuário.
 	  </div>
-	  <!-- The bar below appears on top of the current header with the search bar and add user button if the user is offline -->
-	  <div ng-if="!logged" id="offline" class="bar bar-header bar-assertive"><h1 class="title">Você está offline...</h1></div>
+	</div>
+    <ion-list>
 	  <div ng-repeat="chat in chats | filter:search.value track by $index">
 	  <!-- Below is the normal item for contacts that have accepted your invitation or invited you -->
       <ion-item ng-if="chat.subscription != 'none'" class="item-remove-animate item-avatar item-icon-right" type="item-text-wrap" href="#/tab/chats/{{chat.jid}}">

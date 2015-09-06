@@ -23,4 +23,7 @@ OK - Add badges to tabs
 -* Add the time the message was sent to messages, so we can compare the group chat history to messages already received
 OK - save dashboard cards to localstorage too
 -* change the apagar button to info, and show option like delete history and remove contact
--* make the enable friends option actually work
+OK-* make the enable friends option actually work
+OK-* Add option to disable notifications, and enable them
+OK-* Add Account service to manage preferences
+*- add message when dash or chats tabs are blank

@@ -1,5 +1,12 @@
 <ion-view view-title="Dashboard">
   <ion-content class="padding">
+    <!-- CARDS W/ 0 LENGTH MESSAGE -->
+	<div class="card" style="text-align:center" ng-if="cards.length == 0">
+	  <div class="item item-text-wrap">
+		Aqui você poderá acompanhar os broadcasts e as solicitações que receber.
+	  </div>
+	</div>
+	<!-- CARDS LIST -->
     <div ng-repeat="card in cards" class="list card">
       <div class="item item-divider">{{card.title}}</div>
       <div class="item item-body">

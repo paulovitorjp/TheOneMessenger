@@ -2,9 +2,9 @@ angular.module('starter.services', [])
 
 .factory('Chats', function($localstorage, $rootScope, $state, $stateParams, $time) {
   // Might use a resource here that returns a JSON array
-
+  var chats = [];
   // Some fake testing data
-  var chats = [{
+  /* var chats = [{
     jid: 0,
     name: 'Uesley Lima',
 	subscription: 'both',
@@ -59,7 +59,7 @@ angular.module('starter.services', [])
 	status: 'offline',
 	unread: 7,
 	msgs: []
-  }];
+  }]; */
   
   var rooms = [];
   

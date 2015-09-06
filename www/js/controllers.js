@@ -4,6 +4,7 @@ angular.module('starter.controllers', [])
 	
 	Account.reset();
 	$scope.unauthorized = false;
+	$scope.loginPopupIsOpened = false; //prevents opening two login popups when you receive two disconnected status
 	$scope.badgeDash = 0;
 	$scope.badgeChats = 0;
 	$scope.savePass = Account.get('savePassword');
@@ -31,12 +32,17 @@ angular.module('starter.controllers', [])
 	});
 
 	$scope.showLoginPopup = function() {
-		$scope.loginPopup = $ionicPopup.show({
-			templateUrl: 'templates/login.html',
-			title: 'Entrar', 
-			subTitle: 'Usuário fornecido pela The One Invest.',
-			scope: $scope
-		});
+		if(!$scope.loginPopupIsOpened) { // only opens if it is not already opened
+			$scope.loginPopupIsOpened = true; // sets login popup as opened
+			$scope.loginPopup = $ionicPopup.show({
+				templateUrl: 'templates/login.html',
+				title: 'Entrar', 
+				subTitle: 'Usuário fornecido pela The One Invest.\nhttp://www.theoneinvest.com.br',
+				scope: $scope
+			});			
+		} else {
+			console.warn("Login Popup is already opened.");
+		}
 	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
@@ -56,6 +62,7 @@ angular.module('starter.controllers', [])
 				user.password = '';
 			}
 			$scope.loginPopup.close();
+			$scope.loginPopupIsOpened = false; // sets login popup as closed, enabling it to be opened again
 		}		
 	};
 	
