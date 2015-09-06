@@ -1,9 +1,23 @@
-  <ion-popover-view style="width:122px;height:67px;">
-	<ion-content scroll="false">
+<ion-popover-view style="width:122px;height:67px;">
+	<ion-content scroll="false" >
 	  <div class="row">
         <!-- <div class="col"><center><button ng-click="captureAudio()" class="button positive button-icon icon ion-mic-a"></button></center></div> -->
-        <div class="col"><center><button ng-click="uploadImage(1)" class="button positive button-icon icon ion-android-attach"></button></center></div>
-        <div class="col"><center><button ng-click="uploadImage(0)" class="button positive button-icon icon ion-camera"></button></center></div>
+        <div class="col" ng-if="isMobile">
+          <center>
+            <button ng-click="uploadImage(1)" class="button positive button-icon icon ion-image">
+            </button>
+          </center>
+        </div>
+        <div class="col" ng-if="isMobile">
+          <center>
+            <button ng-click="uploadImage(0)" class="button positive button-icon icon ion-camera"></button>
+          </center>
+        </div>
+        <div class="col" ng-if="!isMobile">
+          <center>
+            <button ng-click="uploadImage(2)" class="button positive button-icon icon ion-image">
+            <input type="file" id="file" name="upfile" accept="image/*" />
+        </div>
       </div>
 	</ion-content>
-  </ion-popover-view>
+</ion-popover-view>
