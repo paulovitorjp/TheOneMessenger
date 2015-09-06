@@ -938,7 +938,7 @@ angular.module('starter.services', [])
       fileTo: function(serverURL, type) {
       var deferred = $q.defer();
 
-      if (ionic.Platform.isWebView()) {
+      if (type != 2) {
         var source;
         switch (type) {
           case 0:
@@ -998,11 +998,8 @@ angular.module('starter.services', [])
             deferred.reject(err);
           });
       }
-      else {
-        deferred.reject('Uploading not supported in browser');
-      }
       return deferred.promise;
-        }
+     }
     }
 })
 
