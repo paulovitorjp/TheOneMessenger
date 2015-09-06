@@ -1,10 +1,34 @@
 angular.module('starter.controllers', [])
 
-.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Chats) {
-
+.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Chats, Account, $ionicPlatform) {
+	
+	Account.reset();
 	$scope.unauthorized = false;
 	$scope.badgeDash = 0;
 	$scope.badgeChats = 0;
+	$scope.savePass = Account.get('savePassword');
+	$scope.localUser = $localstorage.get("jid");
+	if($scope.localUser && $scope.localUser.indexOf('@')!=-1) {
+		$scope.localUser = $scope.localUser.substring(0,$scope.localUser.indexOf("@"));
+	} else {
+		$scope.localUser = '';
+	}
+	var savedPass = $localstorage.get("password");
+	if(savedPass && savedPass != '') {
+		savedPass = Base64.decode($localstorage.get("password"));
+	} else {
+		savedPass = '';
+	}
+	$scope.user = {jid: $scope.localUser, password: savedPass, savePass: $scope.savePass};
+	$ionicPlatform.ready(function() {
+		//starts pushWoosh, check the user preferences first to check if notifications are enabled
+		if(Account.get('enableNotifications')) {
+			console.log("Initializing Push");
+			$pushWoosh.init();
+		} else {
+			console.warn("Push notifications disabled by the user.");
+		}
+	});
 
 	$scope.showLoginPopup = function() {
 		$scope.loginPopup = $ionicPopup.show({
@@ -16,11 +40,21 @@ angular.module('starter.controllers', [])
 	};
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
-			user.jid = user.jid + "@paulovitorjp.com"; //change to paulovitorjp.com
+			if(user.jid.indexOf('@')==-1) {
+				user.jid = user.jid + "@paulovitorjp.com"; //change to SERVER_NAME
+			}			
 			$strophe.connect('connect', {
                     jid: user.jid,
                     password: user.password
-                });
+            });
+			Account.set('savePassword',user.savePass);
+			//console.log("USER.SAVEPASS = " + user.savePass);
+			if(user.savePass) {
+				$localstorage.set("password", Base64.encode(user.password));
+			} else {
+				$localstorage.set("password", '');
+				user.password = '';
+			}
 			$scope.loginPopup.close();
 		}		
 	};
@@ -39,13 +73,16 @@ angular.module('starter.controllers', [])
 			  groups.push(chats[i].jid);
 		  }
 	  }
-	  if(groups.length > 0) {
-		  if(groups.indexOf(data.roomId) == -1) {
+	  if(data) { //if this was called because presence in a new room was received
+		  if(groups.length > 0) {
+			  if(groups.indexOf(data.roomId) == -1) {
+				  groups.push(data.roomId);
+			  }
+		  } else {
 			  groups.push(data.roomId);
 		  }
-	  } else {
-		  groups.push(data.roomId);
-	  }
+	  }//otherwise this the newRoom broadcast was called because user enabled notifications
+	  
 	  console.log('Groups: ' + groups);
 	  $pushWoosh.setTag('Groups', groups);
     });
@@ -72,14 +109,14 @@ angular.module('starter.controllers', [])
 		  } else {
 			  $scope.badgeChats -= data.qtt;
 		  }
-		  console.log("chats badge decremented");
+		  //console.log("chats badge decremented");
 	  } else if(data.tab == 'tab.dash') {
 		  if(data.qtt>$scope.badgeDash) {
 			  $scope.badgeDash = 0;
 		  } else {
 			  $scope.badgeDash -= data.qtt;
 		  }
-		  console.log("dash badge decremented");
+		  //console.log("dash badge decremented");
 	  }
 	  if(!$scope.$$phase) {
 		  $scope.$digest();
@@ -140,7 +177,7 @@ angular.module('starter.controllers', [])
 		window.open(link, '_blank');
 	}
 	$scope.$on('$ionicView.enter', function(e) {
-		console.log("STATE: " + $state.$current.name);
+		//console.log("STATE: " + $state.$current.name);
 		$rootScope.$broadcast('decBadge', {tab: 'tab.dash', qtt: 9999});//clears all dashboard notifications
 	});
 })
@@ -269,7 +306,7 @@ angular.module('starter.controllers', [])
     $ionicScrollDelegate.scrollTop(false);
 	$scope.logged = $strophe.isLogged();
 	$scope.monitor = $strophe.isMonitor();
-	console.log("STATE: " + $state.$current.name);
+	//console.log("STATE: " + $state.$current.name);
 	//console.log("vireContentLoaded SCROLL!");
 	//Chats.save(); //saves the chats array because the unread messages are now 0...
   });
@@ -517,21 +554,21 @@ angular.module('starter.controllers', [])
 		$scope.chat.unread= 0;
     }
 	Chats.save(); //saves the chats array because the unread messages are now 0...
-	console.log("STATE: " + $state.$current.name);
+	//console.log("STATE: " + $state.$current.name);
   });
 
 })
 
-.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh) {
-  $scope.settings = {
-    enableFriends: true
-  };
+.controller('AccountCtrl', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Account, $getPlatform, $rootScope) {
+  
+  $scope.isMobile = $getPlatform.isMobile();
+  $scope.settings = Account.all();
   $scope.logoff = function() {
 	  $scope.logoffPopup.close();
-	  $strophe.disconnect();//why this isn't sending the unavailable presence?
+	  $strophe.disconnect();
 	  $pushWoosh.unregister(); //unregister device so it won't receive further notifications
 	  console.log("Logged off.");
-	  $strophe.setLogged(false); //TODO na vdd precisa limpar a sessão e enviar a stanza de logoff
+	  $strophe.setLogged(false); //a stanza de logoff já foi enviada no $strophe.disconnect
 	  //$localstorage.remove("chats");//tem que manter o historico se o cara fizer logoff
 	  //location.reload();
   }
@@ -546,8 +583,23 @@ angular.module('starter.controllers', [])
 			}
 		});
   };
+  $scope.setFriends = function(settings) {
+	  Account.set('enableFriends',settings.enableFriends);
+	  $scope.settings = Account.all();
+  }
+  $scope.setNotifications = function(settings) {
+	  Account.set('enableNotifications',settings.enableNotifications);
+	  $scope.settings = Account.all();
+	  if(settings.enableNotifications) {
+		  $pushWoosh.init();
+		  $rootScope.$broadcast('newRoom', null);
+		  $pushWoosh.setTag('JID', $localstorage.get('jid'));
+	  } else {
+		  $pushWoosh.unregister();
+	  }
+  }
   $scope.$on('$ionicView.enter', function(e) {
-	console.log("STATE: " + $state.$current.name);
+	//console.log("STATE: " + $state.$current.name);
   });
 	
 })

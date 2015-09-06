@@ -21,10 +21,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       StatusBar.styleLightContent();
     }
 	
-	//starts pushWoosh
-	if(ionic.Platform.isWebView()) {
-		$pushWoosh.init();
-	}
+	//moved the init push to the AppController
 	
   });
 })

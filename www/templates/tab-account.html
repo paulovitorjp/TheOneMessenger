@@ -1,8 +1,11 @@
 <ion-view view-title="Account">
   <ion-content>
     <ion-list>
-    <ion-toggle  ng-model="settings.enableFriends">
-        Habilitar solicitações de amizade
+    <ion-toggle  ng-model="settings.enableFriends" ng-click="setFriends(settings)">
+        Habilitar amigos
+    </ion-toggle>
+	<ion-toggle  ng-model="settings.enableNotifications" ng-click="setNotifications(settings)" ng-if="isMobile">
+        Habilitar notificações
     </ion-toggle>
 	<ion-item ng-click="showLogoffPopup()">
         Logoff

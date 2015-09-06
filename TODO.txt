@@ -17,8 +17,10 @@ OK - sort chats by last message
 -* push notifications (ios/android) + sound
 - Messages will only be saved on the device that received it. (oh well)
 OK - Leave chats that haven't been accepted yet grayed out...
--* clean default dashboard cards
+OK - clean default dashboard cards
 OK - store strophe-bosh-session in localStorage also, instead of only sessionStorage, so when app reloads only reconnects
 OK - Add badges to tabs
 -* Add the time the message was sent to messages, so we can compare the group chat history to messages already received
--* save dashboard cards to localstorage too
+OK - save dashboard cards to localstorage too
+-* change the apagar button to info, and show option like delete history and remove contact
+-* make the enable friends option actually work

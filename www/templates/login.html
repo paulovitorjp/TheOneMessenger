@@ -1,6 +1,11 @@
 <form novalidate class="simple-form">
 	<p id="unauthorized" ng-if="unauthorized">Usuário ou senha inválidos</p>
     <input type="text" placeholder="Usuário" ng-model="user.jid" /><br />
-    <input type="password" placeholder="Senha" ng-model="user.password" /><br />
+    <input type="password" placeholder="Senha" ng-model="user.password" />
+	<label id="savePassCheckbox" class="checkbox">
+		<input type="checkbox" ng-model="user.savePass"/>
+	</label>
+	<span id="savePassLabel">Salvar senha</span>
+
     <input type="submit" class="button button-positive" ng-click="connect(user)" value="Conectar" />
 </form>

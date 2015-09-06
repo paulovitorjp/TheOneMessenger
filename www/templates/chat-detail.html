@@ -25,16 +25,17 @@
          <!-- image type: Others -->
           <ion-item ng-if="msg.type == 'image' && msg.from != 'me'" class="item-remove-animate item-text-wrap item-avatar" ng-click="fullscreen(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+			<span ng-if="chat.is_room">{{msg.from}}</span>
             <span ng-if="msg.type != 'composing'"class="timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
               <!-- <img class="full-image" ng-src="{{thumbnail(msg.content)}}"> -->
-              <img class="full-image" image-lazy-src="{{thumbnail(msg.content)}}" image-lazy-loader="android">
+              <img class="image-preview" image-lazy-src="{{thumbnail(msg.content)}}" image-lazy-loader="android">
           </ion-item>
       <!-- image type: Me -->
           <ion-item ng-if="msg.type == 'image' && msg.from == 'me'" class="item-remove-animate item-text-wrap item-avatar-right your-message" ng-click="fullscreen(msg.content)" ng-init="thumbnail(msg.content)">
             <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
             <span ng-if="msg.type != 'composing'"class="your-timestamp">{{msg.time.day}}/{{msg.time.month}}/{{msg.time.year}} {{msg.time.hours}}:{{msg.time.minutes}}</span>
               <!-- <img class="full-image" ng-src="{{thumbnail(msg.content)}}"> -->
-               <img class="full-image" image-lazy-src="{{thumbnail(msg.content)}}" image-lazy-loader="android">
+               <img class="image-preview" image-lazy-src="{{thumbnail(msg.content)}}" image-lazy-loader="android">
           </ion-item>
 	      <!-- composing or notification -->
 	        <span class="composing" ng-if="msg.type == 'composing' || msg.type == 'notification'"><i>{{msg.content}}</i></span>

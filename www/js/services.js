@@ -1,6 +1,6 @@
 angular.module('starter.services', [])
 
-.factory('Chats', function($localstorage, $rootScope, $state, $stateParams) {
+.factory('Chats', function($localstorage, $rootScope, $state, $stateParams, $time) {
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
@@ -141,14 +141,7 @@ angular.module('starter.services', [])
 			  if(chats[i].msgs.length>=1 && chats[i].msgs[chats[i].msgs.length-1].type=='composing') {
 				  chats[i].msgs.pop(); // removes 'composing' status
 			  }
-			  var now = new Date();
-			  var day = (now.getDate()<10)?'0'+now.getDate():now.getDate(); //adds left zero
-			  var month = ((now.getMonth()+1)<10)?'0'+(now.getMonth()+1):(now.getMonth()+1); //adds left zero
-			  var year = now.getFullYear()%100;
-			  var hours = (now.getHours()<10)?'0'+now.getHours():now.getHours();//adds left zero
-			  var minutes = (now.getMinutes()<10)?'0'+now.getMinutes():now.getMinutes(); //adds left zero
-			  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
-			  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
+			  var fullTime = $time.getTime();
 			  var type = 'text'; // change this to a if that reads the content of the message looking for the type of file
 
 			  var audio_re = /\[audio:(.*)\]/g;
@@ -298,7 +291,7 @@ angular.module('starter.services', [])
   };
 })
 
-.factory('Dashboard', function($localstorage, $rootScope, $state) {
+.factory('Dashboard', function($localstorage, $rootScope, $state, $time) {
   // Might use a resource here that returns a JSON array
   var iterator = 3;
 
@@ -346,15 +339,8 @@ angular.module('starter.services', [])
     },
 	addCard: function(type, from, data) {
       var card = '';
-	  
-	  var now = new Date();
-	  var day = (now.getDate()<10)?'0'+now.getDate():now.getDate(); //adds left zero
-	  var month = ((now.getMonth()+1)<10)?'0'+(now.getMonth()+1):(now.getMonth()+1); //adds left zero
-	  var year = now.getFullYear()%100;
-	  var hours = (now.getHours()<10)?'0'+now.getHours():now.getHours();//adds left zero
-	  var minutes = (now.getMinutes()<10)?'0'+now.getMinutes():now.getMinutes(); //adds left zero
-	  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
-	  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
+
+	  var fullTime = $time.getTime();
 	  
 	  if(type == 'subscribe') {
 		  var name = from.substring(0,from.indexOf('@'));
@@ -389,11 +375,70 @@ angular.module('starter.services', [])
 			$rootScope.$broadcast('incBadge', {tab: 'tab.dash'});
 		}
 	  }
-    }
+    },
+	save: function() {
+		$localstorage.setObject("cards", cards);
+	},
+	reset: function() {
+		cards.splice(0,cards.length);
+		console.log("cards reset to empty");
+		if($localstorage.getObject("cards")) {
+			local = $localstorage.getObject("cards");
+			length = local.length;
+			for(i=0;i<length;i++) {
+				cards.unshift(local.pop());
+				//this way the pointer the controllers have to chats will be kept
+			}
+			console.log("cards reset to locally stored version");
+		}
+	}
   };
 })
 
-.service('$strophe', function($localstorage, Chats, Dashboard, $rootScope, $pushWoosh) {
+.factory('Account', function($localstorage, $rootScope, $state, $time) {
+  // Might use a resource here that returns a JSON array
+
+  // Some fake testing data
+  var prefs = {enableFriends: true, savePassword: true, enableNotifications: true, disabledGroups: {}};
+  
+  return {
+    all: function() {
+      return prefs;
+    },
+    set: function(key, value) {
+		console.log('Key: ' + key + ', Value: ' + value);
+      prefs[key] = value;
+	  $localstorage.setObject("prefs", prefs);
+	  console.log('Account preferences saved.');
+    },
+    get: function(key) {
+      return prefs[key];
+    },
+	disableGroup: function(group_jid) {
+	  prefs.disabledGroups[group_jid] = true;
+	  $localstorage.setObject("prefs", prefs);
+      //TODO setTags to remove the group
+    },
+	enableGroup: function(group_jid) {
+	  prefs.disabledGroups[group_jid] = false;
+	  $localstorage.setObject("prefs", prefs);
+      //TODO setTags to remove the group
+    },
+	save: function() {
+		$localstorage.setObject("prefs", prefs);
+	},
+	reset: function() {
+		if($localstorage.getObject("prefs")) {
+			prefs = $localstorage.getObject("prefs");
+			console.log("prefs reset to locally stored version");
+		} else {
+			console.log("prefs using the default values");
+		}
+	}
+  };
+})
+
+.service('$strophe', function($localstorage, Chats, Dashboard, Account, $rootScope, $pushWoosh) {
 	
 	var self = this;
 	
@@ -435,7 +480,7 @@ angular.module('starter.services', [])
 		user.jid = jid;
 		$localstorage.set("jid",user.jid);
 	  }
-	  else $localstorage.set("jid","");
+	  //else $localstorage.set("jid","");
 	};
 	
 	this.isMonitor = function() {
@@ -486,6 +531,7 @@ angular.module('starter.services', [])
 			  self.setLogged(true,data.jid);
 			  self.connected();
 			  Chats.reset();
+			  Dashboard.reset();
 			  break;
 			case Strophe.Status.DISCONNECTED:
 			  connection = conn;
@@ -503,6 +549,7 @@ angular.module('starter.services', [])
 			  self.setLogged(true,jid);
 			  self.connected();
 			  Chats.reset();
+			  Dashboard.reset();
 			  break;
 		  }
 		});
@@ -537,6 +584,7 @@ angular.module('starter.services', [])
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
+					  Dashboard.reset();
 					  break;
 					case Strophe.Status.DISCONNECTED:
 					  console.log('[Connection] DISCONNECTED');
@@ -554,6 +602,7 @@ angular.module('starter.services', [])
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
+					  Dashboard.reset();
 					  break;
 				}
 			});
@@ -592,6 +641,7 @@ angular.module('starter.services', [])
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
+					  Dashboard.reset();
 					  break;
 					case Strophe.Status.DISCONNECTED:
 					  console.log('[Connection] DISCONNECTED');
@@ -609,6 +659,7 @@ angular.module('starter.services', [])
 					  self.setLogged(true,jid);
 					  self.connected();
 					  Chats.reset();
+					  Dashboard.reset();
 					  break;
 				}
 			});
@@ -749,7 +800,7 @@ angular.module('starter.services', [])
 			data = {
 				state: 'tab.chats.detail',
 				params: {
-					chatId: user.jid
+					chatId: (type=='chat')?user.jid:jid
 				}
 			};
 			$pushWoosh.sendNotification(fromName, jid, body, data, type);
@@ -919,7 +970,13 @@ angular.module('starter.services', [])
 			jid = from.substring(0,from.indexOf('/'));
 			if (ptype === 'subscribe') {
 				//someone is asking to subscribe (add to contacts)
-				Dashboard.addCard('subscribe', from); //this from has the slash, but will be cut
+				//TODO is friends enabled only
+				if(Account.get('enableFriends')) {
+					Dashboard.addCard('subscribe', from); //this from has the slash, but will be cut
+				} else {
+					console.log("Friends are disabled, subscription will be ignored.");
+				}
+				
 			}/* else if (ptype === 'subscribed') {
 				//user has accepted your invitation, now it will be added to the roster
 				var user = Chats.getSubscription(jid);
@@ -1035,17 +1092,17 @@ angular.module('starter.services', [])
 
   this.isMobile = function() {
 
-  var isWebView = ionic.Platform.isWebView();
-  var isIPad = ionic.Platform.isIPad();
-  var isIOS = ionic.Platform.isIOS();
-  var isAndroid = ionic.Platform.isAndroid();
-  var isWindowsPhone = ionic.Platform.isWindowsPhone();
+	  var isWebView = ionic.Platform.isWebView();
+	  var isIPad = ionic.Platform.isIPad();
+	  var isIOS = ionic.Platform.isIOS();
+	  var isAndroid = ionic.Platform.isAndroid();
+	  var isWindowsPhone = ionic.Platform.isWindowsPhone();
 
-  if (isWindowsPhone||isIPad||isIOS||isAndroid||isWindowsPhone) {
-    return true 
-  } else {
-     return false
-    }
+	  if (isWindowsPhone||isIPad||isIOS||isAndroid) {
+		return true;
+	  } else {
+		return false;
+	  }
   }
 })
 
@@ -1090,6 +1147,20 @@ angular.module('starter.services', [])
   }
 }])
 
+.service('$time', function() {
+	this.getTime = function() {
+	  var now = new Date();
+	  var day = (now.getDate()<10)?'0'+now.getDate():now.getDate(); //adds left zero
+	  var month = ((now.getMonth()+1)<10)?'0'+(now.getMonth()+1):(now.getMonth()+1); //adds left zero
+	  var year = now.getFullYear()%100;
+	  var hours = (now.getHours()<10)?'0'+now.getHours():now.getHours();//adds left zero
+	  var minutes = (now.getMinutes()<10)?'0'+now.getMinutes():now.getMinutes(); //adds left zero
+	  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
+	  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
+	  return fullTime;
+	}
+})
+
 .service('$pushWoosh', function($localstorage, $rootScope, $state) {
 	
 	var pushNotification = null;
@@ -1118,27 +1189,15 @@ angular.module('starter.services', [])
 		} else if(isIOS || isIPad) {
 			platform = 'iOS';
 			self.initIOS();
+		} else {
+			console.warn("Your platform does not support push.");
 		}
 	};
 	
 	this.initAndroid = function() {
 		pushNotification = cordova.require("com.pushwoosh.plugins.pushwoosh.PushNotification");
 		//set push notifications handler
-		document.addEventListener('push-notification', function(event) {
-			var notification = event.notification;
-			pushNotification.getLaunchNotification(function(payload) {
-				if(payload && payload.onStart) { //if there is a payload the app was last opened by push
-					var rcvdState = payload.userdata.state || 'tab.chats';
-					var rcvdParams = payload.userdata.params || {};
-					$state.go(rcvdState,rcvdParams);
-					console.log("Opened by push, rcvdState: " + rcvdState + " rcvdParams: " + JSON.stringify(rcvdParams));
-				} else {
-					console.log("App was already opened, you won't be redirected to chat.");
-				}
-			});				 
-			console.warn("Notificação recebida!");
-			console.log("Notificação: " + JSON.stringify(notification));
-		});
+		document.addEventListener('push-notification', self.receivePushAndroid);
 		//initialize Pushwoosh with projectid: "GOOGLE_PROJECT_NUMBER", pw_appid : "PUSHWOOSH_APP_ID". This will trigger all pending push notifications on start.
 		pushNotification.onDeviceReady({ projectid: "773091798737", pw_appid : "F58BF-575B5" });
 		//register for pushes
@@ -1165,11 +1224,33 @@ angular.module('starter.services', [])
 	};
 	
 	this.initIOS = function() {
-		//TODO
+		pushNotification = cordova.require("com.pushwoosh.plugins.pushwoosh.PushNotification");
+	 
+		//set push notification callback before we initialize the plugin
+		document.addEventListener('push-notification', self.receivePushIOS);
+	 
+		//initialize the plugin
+		pushNotification.onDeviceReady({pw_appid:"F58BF-575B5"});
+		 
+		//register for pushes
+		pushNotification.registerDevice(
+			function(status) {
+				pushToken = status['deviceToken'];
+				self.setRegistered(true);
+				console.log('push token: ' + pushToken);
+				self.setCachedTags();
+			},
+			function(status) {
+				console.warn('failed to register : ' + JSON.stringify(status));
+			}
+		);
+		 
+		//reset badges on app start
+		pushNotification.setApplicationIconBadgeNumber(0);
 	};
 	
 	this.setTag = function(tagName, tagValue) {
-		if(pushNotification && Object.keys(cachedTags).length == 0) {
+		if(pushNotification && registered && Object.keys(cachedTags).length == 0) {
 			var tagJSON = {};
 			tagJSON[tagName] = tagValue;
 			pushNotification.setTags(tagJSON,
@@ -1179,7 +1260,8 @@ angular.module('starter.services', [])
 				function(status) {
 					console.warn('Tag set failed:\n' + JSON.stringify(tagJSON) + '\nStatus: ' + JSON.stringify(status));
 				}
-			);	
+			);
+			
 		} else {
 			console.warn('setTag failed. Push service not initialized. Caching tags to be set when registered.');
 			cachedTags[tagName] = tagValue;
@@ -1258,6 +1340,38 @@ angular.module('starter.services', [])
 		
 	};
 	
+	this.receivePushAndroid = function(event) {
+		var notification = event.notification;
+		pushNotification.getLaunchNotification(function(payload) {
+			if(payload && payload.onStart) { //if there is a payload the app was last opened by push
+				var rcvdState = payload.userdata.state || 'tab.chats';
+				var rcvdParams = payload.userdata.params || {};
+				$state.go(rcvdState,rcvdParams);
+				console.log("Opened by push, rcvdState: " + rcvdState + " rcvdParams: " + JSON.stringify(rcvdParams));
+			} else {
+				console.log("App was already opened, you won't be redirected to chat.");
+			}
+		});				 
+		console.log("Notificação recebida!");
+		console.log("Notificação: " + JSON.stringify(notification));
+	};
+	
+	this.receivePushIOS = function(event) {
+		//get the notification payload
+		var notification = event.notification;
+		pushNotification.getLaunchNotification(function(payload) {
+			if(payload && payload.onStart) { //if there is a payload the app was last opened by push
+				var rcvdState = payload.userdata.state || 'tab.chats';
+				var rcvdParams = payload.userdata.params || {};
+				$state.go(rcvdState,rcvdParams);
+				console.log("Opened by push, rcvdState: " + rcvdState + " rcvdParams: " + JSON.stringify(rcvdParams));
+			} else {
+				console.log("App was already opened, you won't be redirected to chat.");
+			}
+		});
+		pushNotification.setApplicationIconBadgeNumber(0);
+	};
+	
 	this.unregister = function() {
 		if(pushNotification) {
 			pushNotification.unregisterDevice(
@@ -1269,6 +1383,8 @@ angular.module('starter.services', [])
 					console.warn('Device unregister FAILED. Status: ' + status);
 				}
 			);
+		} else {
+			console.warn('Unregister failed. Push service not initialized.');
 		}
 	};
 	
