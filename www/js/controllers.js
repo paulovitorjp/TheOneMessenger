@@ -202,8 +202,32 @@ angular.module('starter.controllers', [])
   $scope.chats = Chats.all();
   $scope.user = {jid: '', name: ''} // user to be added
   $scope.broadcast = {title: '', message: '', link: '', time: ''}; //broadcast to be sent
-  $scope.remove = function(chat) {
+  $scope.openInfo = function(chat) {
+	  $scope.chat = chat;
+	  console.log('Info popup opened.');
+	  $scope.infoPopup = $ionicPopup.show({
+		  templateUrl: 'templates/info.html',
+		  title: 'Sobre ' + chat.name,
+		  subTitle: 'Informações e opções relacionadas ao usuário.',
+		  scope: $scope,
+		  buttons: [{
+			  text: 'Fechar',
+			  type: 'button-positive',
+			  onTap: function(e) {
+				  console.log('Info popup closed.');
+			  }
+		  }]
+	  });
+  };
+  $scope.deleteHistory = function(chatId) {
+    Chats.deleteHistory(chatId);
+	console.log("History deleted.");
+	$scope.infoPopup.close();
+  };
+  $scope.removeUser = function(chat) {
     Chats.remove(chat);
+	$strophe.remove_user(chat.jid);
+	$scope.infoPopup.close();
   };
   $scope.$on('updateChats',function(event, data) {
 	  $scope.logged = $strophe.isLogged(); //$scope.logged is created below at beforeEnter

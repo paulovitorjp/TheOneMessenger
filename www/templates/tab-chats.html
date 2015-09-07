@@ -33,8 +33,8 @@
 		<!--<span ng-if="!(chat.unread == 0)" class="unread">{{chat.unread}}</span>-->
 		<span ng-if="chat.time != ''" class="timestamp">{{chat.time.day}}/{{chat.time.month}}/{{chat.time.year}} {{chat.time.hours}}:{{chat.time.minutes}}</span>
 
-        <ion-option-button class="button-assertive" ng-click="remove(chat)">
-          Apagar
+        <ion-option-button class="button-energized" ng-click="openInfo(chat)">
+          Sobre
         </ion-option-button>
       </ion-item>
 	  <!-- Below is the disabled item for contacts that haven't accepted your invitation -->
@@ -44,8 +44,8 @@
         <p>Aguardando autorização</p>
         <i class="icon ion-chevron-right icon-accessory"></i>
 		<span id="status" class="badge badge-dark icon-badge">-</span>
-        <ion-option-button class="button-assertive" ng-click="remove(chat)">
-          Apagar
+        <ion-option-button class="button-energized" ng-click="openInfo(chat)">
+          Sobre
         </ion-option-button>
       </ion-item>
 	  </div>

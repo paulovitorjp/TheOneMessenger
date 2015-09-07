@@ -82,6 +82,16 @@ angular.module('starter.services', [])
       }
       return null;
     },
+	deleteHistory: function(chatId) {
+      for (var i = 0; i < chats.length; i++) {
+        if (chats[i].jid == chatId) {
+          chats[i].msgs = [];
+		  chats[i].lastText = '';
+		  chats[i].time = '';
+		  $localstorage.setObject("chats", chats);
+        }
+      }
+    },
 	getRoom: function(room_id) {
       for (var i = 0; i < rooms.length; i++) {
         if (rooms[i].jid == room_id) {
@@ -849,6 +859,12 @@ angular.module('starter.services', [])
 		
 		var subscribe = $pres({to: user.jid, "type": "subscribe"});
 		connection.send(subscribe);
+		return true;
+	};
+	
+	this.remove_user = function(user) {
+		var iq = $iq({type: "set"}).c("query", {xmlns: "jabber:iq:roster"}).c("item", {jid: user, subscription: 'remove'});
+		connection.sendIQ(iq);
 		return true;
 	};
 	
