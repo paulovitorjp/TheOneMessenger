@@ -348,7 +348,7 @@ angular.module('starter.controllers', [])
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $getPlatform, $ionicPopup,
-	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope, $server, $cordovaFile
+	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope, $server, $cordovaFile,
 	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload, $state) {
   var SERVER_NAME = $server.name();
   $scope.chat = Chats.get($stateParams.chatId);
@@ -578,7 +578,7 @@ angular.module('starter.controllers', [])
 
         angular.element(document.getElementById('file')).on('change',function(event) {
           var file = event.target.files[0];
-          var url = "http://paulovitorjp.com/upload_script.php";
+          var url = "http://" + SERVER_NAME + "/upload_script.php";
           var xhr = new XMLHttpRequest();
           var fd = new FormData(); 
 
