@@ -348,12 +348,13 @@ angular.module('starter.controllers', [])
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $getPlatform, $ionicPopup,
-	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope, $server,
+	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope, $server, $cordovaFile
 	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload, $state) {
   var SERVER_NAME = $server.name();
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   $scope.composing = false;
+  $scope.isMobile = $getPlatform.isMobile();
   $scope.$on('newMsg',function(event, data) {
 	  console.log(data.from);
 	  if(data.from != 'me') {
@@ -372,6 +373,7 @@ angular.module('starter.controllers', [])
 
   $scope.openPopover = function($event) {
 	console.log("Abriu Popover.");
+    console.log('isMobile ' + $scope.isMobile);
     $scope.popover.show($event);
   };
   $scope.closePopover = function() {
@@ -445,8 +447,6 @@ angular.module('starter.controllers', [])
       }]
     });
   };
-
-
 
   $scope.fullscreen = function(imageSrc){
 
@@ -532,7 +532,7 @@ angular.module('starter.controllers', [])
             $ionicLoading.hide(); 
             $localstorage.set(thumbnail, targetPath);
           }, function(err) {
-			  console.log(JSON.stringify(err));
+			         console.log(JSON.stringify(err));
                // Error
                // $ionicLoading.show({
                //     content: 'Falha ao baixar a imagem.',
@@ -560,18 +560,43 @@ angular.module('starter.controllers', [])
   };
   
   $scope.uploadImage = function(type) {
-	  $scope.closePopover();
+	$scope.closePopover();
+    if(type == 0 || type == 1) {
       Upload.fileTo("http://" + SERVER_NAME + "/upload_script.php", type).then(
         function(res) {
           success = JSON.stringify(res);
           // Success
 		      $strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
-          //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
           console.log("[UploadCtrl] Success: " + success);
         }, function(err) {
              // Error
              console.log("[UploadCtrl] Error: " + err);
            });
+    } else if (type == 2) {
+        console.log('fire! $scope.openFileDialog()');
+        ionic.trigger('click', { target: document.getElementById('file') });
+
+        angular.element(document.getElementById('file')).on('change',function(event) {
+          var file = event.target.files[0];
+          var url = "http://paulovitorjp.com/upload_script.php";
+          var xhr = new XMLHttpRequest();
+          var fd = new FormData(); 
+
+          xhr.open("POST", url, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              // Every thing ok, file uploaded
+              console.log("[UploadCtrl] Success: " + xhr.responseText );
+              console.log('[sthophe.send]');
+              $strophe.send_message($scope.chat.jid, "[image:" + xhr.responseText + "]", 'me');
+              
+            }
+          };
+          fd.append("upfile", file);
+          xhr.send(fd);
+          file.gambi();
+        })
+      }
 	  };
 	
   $scope.$on('$ionicView.beforeEnter', function(e) {
