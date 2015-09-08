@@ -1341,7 +1341,7 @@ angular.module('starter.services', [])
 					"android_vibration": 0,   // Android force-vibration for high-priority pushes, boolean
 					"android_led":"#0ea7ed",  // LED hex color, device will do its best approximation
 					"android_priority":0,  // Priority of the push in the Android push drawer, valid values are -2, -1, 0, 1 and 2
-					"android_ibc":"#ffffff"  // Icon background color on Lollipop, #RRGGBB, #AARRGGBB, "red", "black", "yellow", etc.
+					"android_ibc":"#00184f"  // Icon background color on Lollipop, #RRGGBB, #AARRGGBB, "red", "black", "yellow", etc.
 					//"conditions": [TAG_CONDITION1] //Optional. See remark
 				 }
 			  ]
