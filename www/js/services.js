@@ -448,11 +448,11 @@ angular.module('starter.services', [])
   };
 })
 
-.service('$strophe', function($localstorage, Chats, Dashboard, Account, $rootScope, $pushWoosh) {
+.service('$strophe', function($localstorage, Chats, Dashboard, Account, $rootScope, $pushWoosh, $server) {
 	
 	var self = this;
 	
-	var SERVER_NAME = 'paulovitorjp.com';
+	var SERVER_NAME = $server.name();
 	
 	var BOSH_SERVICE = 'http://' + SERVER_NAME + ':7070/http-bind/';
 
@@ -820,7 +820,7 @@ angular.module('starter.services', [])
 	
 	this.send_broadcast = function(broadcast) {
 		var body = JSON.stringify(broadcast);
-		var message = $msg({to: 'all@broadcast.paulovitorjp.com', type: 'broadcast'}).c('body').t(body);
+		var message = $msg({to: 'all@broadcast.' + SERVER_NAME, type: 'broadcast'}).c('body').t(body);
 		console.log(message);
 		connection.send(message);
 		var data = {
@@ -1177,6 +1177,12 @@ angular.module('starter.services', [])
 	}
 })
 
+.service('$server', function() {
+	this.name = function() {
+	  return 'messenger.theoneinvest.com.br';
+	}
+})
+
 .service('$pushWoosh', function($localstorage, $rootScope, $state) {
 	
 	var pushNotification = null;
@@ -1228,15 +1234,15 @@ angular.module('starter.services', [])
 				console.warn(JSON.stringify(['failed to register ', JSON.stringify(status)]));
 			}
 		);
-		//sets multi notification mode, otherwise ony the last notification is displayed
-		pushNotification.setMultiNotificationMode(
+		//sets multi notification mode, otherwise only the last notification is displayed
+/* 		pushNotification.setMultiNotificationMode(
 			function(status) {
 				console.log('Multiple notifications mode set. Status: ' + JSON.stringify(status));
 			},
 			function(status) {
 				console.warn('Multiple notifications mode FAILED. Status: ' + JSON.stringify(status));
 			}
-		);
+		); */
 	};
 	
 	this.initIOS = function() {

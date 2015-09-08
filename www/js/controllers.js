@@ -1,7 +1,8 @@
 angular.module('starter.controllers', [])
 
-.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Chats, Account, $ionicPlatform) {
+.controller('AppController', function($scope, $ionicPopup, $strophe, $localstorage, $state, $pushWoosh, Chats, Account, $ionicPlatform, $server) {
 	
+	var SERVER_NAME = $server.name();
 	Account.reset();
 	$scope.unauthorized = false;
 	$scope.loginPopupIsOpened = false; //prevents opening two login popups when you receive two disconnected status
@@ -47,7 +48,7 @@ angular.module('starter.controllers', [])
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
 			if(user.jid.indexOf('@')==-1) {
-				user.jid = user.jid + "@paulovitorjp.com"; //change to SERVER_NAME
+				user.jid = user.jid + "@" + SERVER_NAME; //change to SERVER_NAME
 			}			
 			$strophe.connect('connect', {
                     jid: user.jid,
@@ -347,8 +348,9 @@ angular.module('starter.controllers', [])
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats, $ionicPopover, $getPlatform, $ionicPopup,
-	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope,
+	                                   $ionicScrollDelegate, $strophe, $cordovaFileTransfer, $rootScope, $server,
 	                                   $timeout, $localstorage,$cordovaFileOpener2, $ionicLoading, Upload, $state) {
+  var SERVER_NAME = $server.name();
   $scope.chat = Chats.get($stateParams.chatId);
   $scope.textMessage = '';
   $scope.composing = false;
@@ -457,8 +459,8 @@ angular.module('starter.controllers', [])
     var mimetype = $scope.getmimetype(extension);
     var isMobile = $getPlatform.isMobile();
 
-    var url = "http://paulovitorjp.com/uploads/" + imageSrc;
-
+    var url = "http://" + SERVER_NAME + "/uploads/" + imageSrc;
+ 
     console.log('Extension: ' + extension + ' Mimetype: ' + mimetype + ' Is Mobile? ' + isMobile);
     
     if(isMobile){
@@ -514,7 +516,7 @@ angular.module('starter.controllers', [])
 
     var thumbnail = 'resized_' + thumb; 
     var localthumb = $localstorage.get(thumbnail);
-    var url = "http://paulovitorjp.com/uploads/" + thumbnail;
+    var url = "http://" + SERVER_NAME + "/uploads/" + thumbnail;
     var isMobile = $getPlatform.isMobile();
 
     if (isMobile){
@@ -559,7 +561,7 @@ angular.module('starter.controllers', [])
   
   $scope.uploadImage = function(type) {
 	  $scope.closePopover();
-      Upload.fileTo("http://paulovitorjp.com/upload_script.php", type).then(
+      Upload.fileTo("http://" + SERVER_NAME + "/upload_script.php", type).then(
         function(res) {
           success = JSON.stringify(res);
           // Success
@@ -634,19 +636,3 @@ angular.module('starter.controllers', [])
   });
 	
 })
-
-/* .controller('ImageCtrl', function($scope, Upload, Chats, $strophe){
-  $scope.uploadImage = function(type) {
-    Upload.fileTo("http://paulovitorjp.com/upload_script.php", type).then(
-      function(res) {
-        success = JSON.stringify(res);
-        // Success
-		$strophe.send_message($scope.chat.jid, "[image:" + res + "]", 'me');
-        //Chats.addMessage($scope.chat.jid, "[image:" + res + "]", 'me'); //being called from $strophe.send_message()
-        console.log("[UploadCtrl] Success: " + success);
-      }, function(err) {
-        // Error
-        console.log("[UploadCtrl] Error: " + err);
-      });
-  };
-}); */
