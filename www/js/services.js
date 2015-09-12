@@ -144,7 +144,7 @@ angular.module('starter.services', [])
 	  }
 	},
 
-	addMessage: function(chat, message, from) {
+	addMessage: function(chat, message, from, timeSent) {
 		for (var i=0;i<chats.length;i++) {
 		  if (chats[i].jid == chat) {
 			  //chats[i].status = 'online';
@@ -174,24 +174,56 @@ angular.module('starter.services', [])
 			  	chats[i].lastText = message;
 			  }
 			  
-			  var msg = {type: type, content: message, time: fullTime, from: from};
-			  chats[i].msgs.push(msg);
-			  chats[i].lastType = type;
-			  chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
-       
-			  if($stateParams.chatId != chats[i].jid || $state.$current.name != 'tab.chats.detail') {
-				      console.log("adding unread counter");
-					  chats[i].unread++;
-					  $rootScope.$broadcast('incBadge', {tab: 'tab.chats'});
+			  //var sent = timeSent; //gets the time when message was sent, to verify if this message has already been received
+			  
+			  var msg = {type: type, content: message, time: fullTime, from: from, sent: timeSent};
+			  
+			  var user = $localstorage.get('jid');
+			  if(user && user.indexOf('@') != -1) {
+				  user = user.substring(0,user.indexOf('@'));
+			  }
+			  if(msg.from == user) { //checks if the message came from you, in case you are in a group, then below checks to see if is already in your storage
+				  msg.from = 'me';
 			  }
 			  
-			  //puts chat in first place, this way the newest messages will alwys be on top
-			  chats.unshift(chats.splice(i,1)[0]);
-			  //do not use chats[i] after this!! !! !! !! !! !! !! !! !! !! !! !!
+			  console.log(JSON.stringify(msg));
 			  
-			  $localstorage.setObject("chats", chats);
-			  $rootScope.$broadcast('updateChats', {data: 'something'});
-			  $rootScope.$broadcast('newMsg', {from: msg.from });
+			  var isHistory = false; //if the message has already been received it will be set to true, and won't be added again
+			  var msgHistory = '';
+			  for (var j=chats[i].msgs.length-1; j>=0; j--) {
+				  msgHistory = chats[i].msgs[j];
+				  if($time.isOlder(msgHistory.sent,msg.sent)) { //checks if it has gone past the time the message to be checked was sent ,indicating it hasn't been received before
+					  isHistory = false;
+					  break;
+				  } else if(msgHistory.from == msg.from && msgHistory.content == msg.content && JSON.stringify(msgHistory.sent) == JSON.stringify(msg.sent)){
+					  isHistory = true;
+					  break;
+				  }
+			  }
+			  
+			  console.log('IS HISTORY: ' + isHistory);
+			  
+			  if(!isHistory) { //only adds message if it is not history nor your own message bouncing back in a group
+				chats[i].msgs.push(msg);
+	            chats[i].lastType = type;
+	            chats[i].time = fullTime; //sets the time of last msg received for display in the chats tab
+               
+	            if($stateParams.chatId != chats[i].jid || $state.$current.name != 'tab.chats.detail') {
+	          	      console.log("adding unread counter");
+	          		  chats[i].unread++;
+	          		  $rootScope.$broadcast('incBadge', {tab: 'tab.chats'});
+	            }
+	            
+	            //puts chat in first place, this way the newest messages will alwys be on top
+	            chats.unshift(chats.splice(i,1)[0]);
+	            //do not use chats[i] after this!! !! !! !! !! !! !! !! !! !! !! !!
+	            
+	            $localstorage.setObject("chats", chats);
+	            $rootScope.$broadcast('updateChats', {data: 'something'});
+	            $rootScope.$broadcast('newMsg', {from: msg.from });  
+			  } else {
+				  console.log('Message discarted because is repeated history or your own message');
+			  }
 
 			  break;
 		  }
@@ -448,7 +480,7 @@ angular.module('starter.services', [])
   };
 })
 
-.service('$strophe', function($localstorage, Chats, Dashboard, Account, $rootScope, $pushWoosh, $server) {
+.service('$strophe', function($localstorage, Chats, Dashboard, Account, $rootScope, $pushWoosh, $server, $time) {
 	
 	var self = this;
 	
@@ -793,20 +825,23 @@ angular.module('starter.services', [])
 		var fromName = '';
 		var data = '';
 		var message = '';
+		var timeSent = JSON.stringify($time.getTime());
 		if(jid.indexOf('@conference')!=-1) {
-			message = $msg({to: jid, type: 'groupchat'}).c('body').t(body);
+			message = $msg({to: jid, type: 'groupchat'}).c('body').t(body).up().c('time', {sent: timeSent});
 			type = 'groupchat';
 			fromName = jid.substring(0, jid.indexOf('@'));
 		}
 		else {
 			message = $msg({to: jid, type: 'chat'}).c('body').t(body).up()
-                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"});
+                .c('active', {xmlns: "http://jabber.org/protocol/chatstates"}).up().c('time', {sent: timeSent});
 			type = 'chat';
 			fromName = user.jid.substring(0, user.jid.indexOf('@'));
 		}
 		if(message != '') {
+			console.log('XMPP Message sent: ' + message);
 			connection.send(message);
-			Chats.addMessage(jid, body, from);
+			timeSent = JSON.parse(timeSent);
+			Chats.addMessage(jid, body, from, timeSent);
 			data = {
 				state: 'tab.chats.detail',
 				params: {
@@ -881,15 +916,24 @@ angular.module('starter.services', [])
             Chats.isComposing(jid);
         }
 		
-		body = $(message).find('body');
+		var body = $(message).find('body');
 		if (body.length > 0) {
 			body = body.text()
 		} else {
 			body = null;
 		}
+		
+		var timeSent = $(message).find('time').attr('sent');
+		//console.warn("TIME SENT: " + timeSent);
+		if(timeSent) {
+			timeSent = JSON.parse(timeSent);
+		} else {
+			console.warn("Message arrived without TIME SENT, setting to now to avoid breaking js execution.");
+			timeSent = $time.getTime();
+		}
 
         if (body) {
-			Chats.addMessage(jid,body,jid);//(qual chat, conteudo, remetente)
+			Chats.addMessage(jid,body,jid, timeSent);//(qual chat, conteudo, remetente)
         }		
 		
 		return true;
@@ -915,9 +959,18 @@ angular.module('starter.services', [])
 		}
 		
 		var body = $(message).children('body').text();
+		
+		var timeSent = $(message).find('time').attr('sent');
+		//console.warn("TIME SENT: " + timeSent);
+		if(timeSent) {
+			timeSent = JSON.parse(timeSent);
+		} else {
+			console.warn("Message arrived without TIME SENT, setting to now to avoid breaking js execution.");
+			timeSent = $time.getTime();
+		}
 
         if (body) {
-			Chats.addMessage(room_id,body,user_id);//(qual chat, conteudo, remetente)
+			Chats.addMessage(room_id,body,user_id, timeSent);//(qual chat, conteudo, remetente)
         }		
 		
 		return true;
@@ -1171,6 +1224,37 @@ angular.module('starter.services', [])
 	  var seconds = (now.getSeconds()<10)?'0'+now.getSeconds():now.getSeconds(); //adds left zero
 	  var fullTime = {day: day, month: month, year: year, hours: hours, minutes: minutes, seconds: seconds};
 	  return fullTime;
+	}
+	
+	this.isOlder = function(history,msg) {
+		if(!history) { //if there's no sent time in the history, it means it is older then msg
+			return true;
+		}
+		if(history.year < msg.year) {
+			return true;
+		} else if(history.year == msg.year) {
+			if(history.month < msg.month) {
+				return true;
+			} else if(history.month == msg.month) {
+				if(history.day < msg.day) {
+					return true;
+				} else if(history.day == msg.day) {
+					if(history.hours < msg.hours) {
+						return true;
+					} else if(history.hours == msg.hours) {
+						if(history.minutes < msg.minutes) {
+							return true;
+						} else if(history.minutes == msg.minutes) {
+							if(history.seconds < msg.seconds) {
+								return true;
+							}
+						}
+					}
+				}
+				
+			}
+		}
+		return false;
 	}
 })
 

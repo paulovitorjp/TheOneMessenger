@@ -357,11 +357,11 @@ angular.module('starter.controllers', [])
   $scope.isMobile = $getPlatform.isMobile();
   $scope.$on('newMsg',function(event, data) {
 	  console.log(data.from);
-	  if(data.from != 'me') {
+	  //if(data.from != 'me') {
 		 if(!$scope.$$phase) {
 		   $scope.$digest();
 		 }
-	  }
+	  //}
 	  $ionicScrollDelegate.scrollBottom(false);
 	  //console.log("scroll");
   });
