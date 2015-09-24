@@ -6,8 +6,10 @@ angular.module('starter.controllers', [])
 	Account.reset();
 	$scope.unauthorized = false;
 	$scope.loginPopupIsOpened = false; //prevents opening two login popups when you receive two disconnected status
+	$scope.termsPopupIsOpened = false; //prevents opening two terms popups 
 	$scope.badgeDash = 0;
 	$scope.badgeChats = 0;
+	$scope.agree = Account.get("agree") || false;
 	$scope.savePass = Account.get('savePassword');
 	$scope.localUser = $localstorage.get("jid");
 	if($scope.localUser && $scope.localUser.indexOf('@')!=-1) {
@@ -45,6 +47,7 @@ angular.module('starter.controllers', [])
 			console.warn("Login Popup is already opened.");
 		}
 	};
+	
 	$scope.connect = function(user) {
 		if(user) { //evita undefined error
 			if(user.jid.indexOf('@')==-1) {
@@ -70,6 +73,49 @@ angular.module('starter.controllers', [])
 	$scope.$on('relogin',function(event, data) {
 	  $scope.unauthorized = data.unauthorized;
 	  $scope.showLoginPopup();
+    });
+	
+	$scope.showTermsPopup = function() {
+		if(!$scope.termsPopupIsOpened) { // only opens if it is not already opened
+			$scope.termsPopupIsOpened = true; // sets login popup as opened
+			$scope.termsPopup = $ionicPopup.show({
+				cssClass: 'termspopup',
+				templateUrl: 'templates/termos.html',
+				title: 'Termos e Condições', 
+				subTitle: '',
+				scope: $scope,
+				buttons: [{
+				  text: 'Continuar',
+				  type: 'button-positive',
+				  onTap: function(e) {
+					  if($scope.agree) {
+						  console.log('Terms popup closed.');
+						  $scope.termsPopupIsOpened = false;
+					  } else {
+						  e.preventDefault();
+					  }
+				  }
+			  }]
+			});
+			$scope.termsPopup.then(function(res) {
+			  if(!$scope.agree) {
+				  $scope.termsPopupIsOpened = false;
+				  $scope.showTermsPopup();
+				  console.log("User exit the popup without selecting I agree.")
+			  }
+		    });
+		} else {
+			console.warn("Login Popup is already opened.");
+		}
+	};
+	
+	$scope.iAgree = function() {
+		$scope.agree = !$scope.agree;
+		Account.set('agree', $scope.agree);
+	}
+	
+	$scope.$on('showTerms',function(event, data) {
+	  $scope.showTermsPopup();
     });
 	
 	$scope.$on('newRoom',function(event, data) {//separates the rooms the user has access to to add them to the Groups tag

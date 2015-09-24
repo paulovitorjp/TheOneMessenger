@@ -87,6 +87,22 @@ span.composing {
   height: 100%;
 }
 
+.termspopup .popup{
+	width: 80%;
+	height: 80%;
+}
+
+.termsText {
+	font-size: 0.8em;
+	text-align: justify;
+	line-height: 120%;
+}
+
+.termsHeader {
+	text-align: center;
+	line-height: 120%;
+}
+
 .image-preview {
 	max-width: 20em;
 	max-height: 20em;

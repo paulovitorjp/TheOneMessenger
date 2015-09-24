@@ -441,7 +441,7 @@ angular.module('starter.services', [])
   // Might use a resource here that returns a JSON array
 
   // Some fake testing data
-  var prefs = {enableFriends: true, savePassword: true, enableNotifications: true, disabledGroups: {}};
+  var prefs = {enableFriends: true, savePassword: true, enableNotifications: true, disabledGroups: {}, agree: false};
   
   return {
     all: function() {
@@ -538,6 +538,9 @@ angular.module('starter.services', [])
 		connection.addHandler(self.on_group_message,null, "message", "groupchat");
 		connection.addHandler(self.on_broadcast,null, "message", "broadcast");
 		$pushWoosh.setTag('JID', user.jid);
+		if(!Account.get('agree')) {
+			$rootScope.$broadcast('showTerms', {data: 'something'});
+		}
 	}
 	
 	this.disconnect = function () {
@@ -1105,7 +1108,7 @@ angular.module('starter.services', [])
           sourceType: source,
           allowEdit: false,
           encodingType: Camera.EncodingType.JPEG,
-          popoverOptions: CameraPopoverOptions,
+          popoverOptions: CameraPopoverOptions, //where is it defined
           saveToPhotoAlbum: true,
           quality: 100,
         }
